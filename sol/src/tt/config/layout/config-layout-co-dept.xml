@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.dept.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- user department search -->
+ <definition name="admin.dept.search.list" extends="admin.dept.template.tiles">
+  <put-attribute name="title" value="부서관리|검색" />
+  <put-attribute name="body" value="/WEB-INF/jsp/com/module/dept/adDeptSearchList.jsp" />
+ </definition>
+
+ <!-- user department modify -->
+ <definition name="admin.dept.modify" extends="admin.dept.template.tiles">
+  <put-attribute name="title" value="부서관리|부서상세" />
+  <put-attribute name="body" value="/WEB-INF/jsp/com/module/dept/adDeptModify.jsp" />
+ </definition>
+
+ <!-- user department register -->
+ <definition name="admin.dept.regist" extends="admin.dept.template.tiles">
+  <put-attribute name="title" value="부서관리|부서추가" />
+  <put-attribute name="body" value="/WEB-INF/jsp/com/module/dept/adDeptRegist.jsp" />
+ </definition>
+
+</tiles-definitions>

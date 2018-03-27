@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.publishing.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- 예외|정책예외신청 -->
+ <definition name="admin.publishing.1.tiles" extends="admin.publishing.template.tiles">
+  <put-attribute name="title" value="예외|정책예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/publishing/page1.jsp" />
+ </definition>
+
+ <!-- 시스템|게시관리|등록 -->
+ <definition name="admin.publishing.2.tiles" extends="admin.publishing.template.tiles">
+  <put-attribute name="title" value="시스템|게시관리|등록" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/publishing/page2.jsp" />
+ </definition>
+
+ <!-- 시스템|그룹관리|등록 -->
+ <definition name="admin.publishing.3.tiles" extends="admin.publishing.template.tiles">
+  <put-attribute name="title" value="시스템|그룹관리|등록" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/publishing/page3.jsp" />
+ </definition>
+
+ <!-- 통제예외|신청 -->
+ <definition name="admin.publishing.4.tiles" extends="admin.publishing.template.tiles">
+  <put-attribute name="title" value="통제예외|신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/publishing/page4.jsp" />
+ </definition>
+
+</tiles-definitions>

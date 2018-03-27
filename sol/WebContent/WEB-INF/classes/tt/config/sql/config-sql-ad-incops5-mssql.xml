@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com-incops5">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoDept" type="tt.com.bean.VoCoDept" />
+ <typeAlias alias="voBoard" type="tt.bean.VoBoard" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voPcBasic" type="tt.bean.VoPcBasic" />
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- TDEPT ALL SELECT 절 -->
+ <sql id="incops5.body.mssql">
+  SELECT
+      DEPTCODE,
+      DEPTNAME,
+      DEPTENGNAME,
+      HIGHDEPTCODE,
+      DEPTH,
+      FNAMEKOR,
+      FNAMEENG,
+      NORDER,
+      NLEVEL,
+      MADECODE
+  FROM
+      PC_DEPTCODE
+ </sql>
+
+<!-- PC_BASIC ALL SELECT 절 -->
+<sql id="incops5.pc.basic.all.mssql">
+SELECT
+  SERIAL     AS     serial,
+  EMPNO     AS   empNo,
+  HNAME     AS   hName,
+  INDEPTNM    AS   indeptNm,
+  SDEPTNM     AS   sdeptNm,
+  LOCATENM    AS   locateNm,
+  BUILDNM     AS   buildNm,
+  AREA     AS   area,
+  START_DATE    AS   startDate,
+  LATEST_DATE    AS   latestDate,
+  ACCESS_CNT    AS   accessCnt,
+  ERROR_CNT    AS   errorCnt,
+  PC_TYPE     AS   pcType,
+  IP_ADDR     AS   ipAddr,
+  VERSION     AS   version,
+  MODEL     AS   model,
+  PC_GUBUN    AS   pcGubun,
+  OS     AS   os,
+  REMARKS     AS   remarks,
+  SEBU_AREA    AS   sebuArea,
+  PROP_NO     AS   propNo,
+  COMPUTER_NAME    AS   computerName,
+  CPUID              AS   cpuId,
+  MAC     AS   mac,
+  OWNERSHIP    AS   ownership,
+  PROP_GUBUN    AS   propGubun,
+  REAL_IPADDR    AS   realIpaddr,
+  PC_USED     AS   pcUsed,
+  TEMP_SAVE    AS   tempSave,
+  RESIDENCE    AS   residence,
+  VUP_TIME    AS   vupTime,
+  DEPTCODE    AS   deptCode,
+  MADECODE    AS   madeCode,
+  BUILDVER    AS   buildVer,
+  ROW_NUMBER() OVER( ORDER BY SERIAL ) AS ROWNUM
+FROM
+  incops5.dbo.PC_BASIC
+WHERE
+  1=1
+  <isNotEmpty prepend="AND" property="hName">
+   HNAME LIKE '%' + #hName# + '%'
+  </isNotEmpty>
+</sql>
+
+<!-- PC_BASIC ALL SELECT 절 -->
+ <!-- 사이트 예외 사용자 변경 -->
+<sql id="incops5.sitePc.basic.all.mssql">
+  SELECT
+    EmpName as hName,
+    UserID as userId,
+    EmployeeNo as employeeNo,
+    ROW_NUMBER() OVER( ORDER BY UserID ) AS ROWNUM
+   FROM WK_POLICY.dbo.TB_MEMPDATA
+       WHERE 1=1
+  <isNotEmpty prepend="AND" property="hName">
+   EmpName LIKE '%' + #hName# + '%'
+  </isNotEmpty>
+</sql>
+
+
+<!-- PAGE SELECT START 절 -->
+ <sql id="incops5.page.select.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="incops5.page.select.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="incops5.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="incops5.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+<!-- ############################################################################################## -->
+ <!--  -->
+ <!-- ############################################################################################## -->
+
+
+
+ <select id="incops5.dept.list.mssql" resultClass="coTtObjParams">
+  <include refid="incops5.body.mssql"/>
+ </select>
+
+ <select id="incops5.pc.basic.list.all.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic" >
+ <include refid="incops5.page.select.start.mssql"/>
+ <include refid="incops5.pc.basic.all.mssql"/>
+ <!-- AND SDEPTNM = #deptNm# -->
+ <include refid="incops5.page.select.end.mssql"/>
+ </select>
+
+ <select id="incops5.pc.basic.list.all.cnt.mssql" parameterClass="voPcBasic" resultClass="int">
+ <include refid="incops5.page.cnt.start.mssql"/>
+ <include refid="incops5.pc.basic.all.mssql"/>
+ <!-- AND SDEPTNM = #deptNm# -->
+ <include refid="incops5.page.cnt.end.mssql"/>
+ </select>
+
+ <select id="incops5.sitePc.basic.list.all.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic" >
+ <include refid="incops5.page.select.start.mssql"/>
+ <include refid="incops5.sitePc.basic.all.mssql"/>
+ <!-- AND SDEPTNM = #deptNm# -->
+ <include refid="incops5.page.select.end.mssql"/>
+ </select>
+
+ <select id="incops5.sitePc.basic.list.all.cnt.mssql" parameterClass="voPcBasic" resultClass="int">
+ <include refid="incops5.page.cnt.start.mssql"/>
+ <include refid="incops5.sitePc.basic.all.mssql"/>
+ <!-- AND SDEPTNM = #deptNm# -->
+ <include refid="incops5.page.cnt.end.mssql"/>
+ </select>
+
+ <select id="incops5.selectPcBasic.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic">
+ <include refid="incops5.pc.basic.all.mssql"/>
+ AND
+  SERIAL = #serial#
+ </select>
+
+<!-- 추가 HDD 중복 확인 -->
+<select id="DaoMyApproval.select.chk.same.ADDHDD.mssql" parameterClass="coTtObjParams" resultClass="int">
+SELECT
+ COUNT(SERIAL) AS CNT
+FROM
+ PC_HDD_EXCEPTION
+WHERE
+ SERIAL = #serial#
+ </select>
+
+<!--  추가 HDD 업데이트 -->
+ <update id="DaoMyApproval.update.appr.exception.ADDHDD.mssql" parameterClass="coTtObjParams">
+ UPDATE
+     PC_HDD_EXCEPTION
+   SET
+     SERIAL = #serial#,
+     EMPNO  = #empNo#,
+     REG_EMPNO = #userId#,
+     REG_DATE = #expDm#,
+     ALLOW_DESC = #reason#,
+     ALLOW_GUBUN =    0,
+     ALLOW_FROMDATE =  #startDm#,
+     ALLOW_TODATE  =    #endDm#,
+     GRP_GUBUN   =    'P'
+ WHERE
+      SERIAL = #serial#
+ </update>
+
+<!--  추가 HDD 적용 -->
+ <insert id="DaoMyApproval.insert.appr.exception.ADDHDD.mssql" parameterClass="coTtObjParams">
+ INSERT
+  INTO PC_HDD_EXCEPTION
+       (
+           SERIAL,
+           EMPNO,
+           REG_EMPNO,
+           REG_DATE,
+           ALLOW_DESC,
+           ALLOW_GUBUN,
+           ALLOW_FROMDATE,
+           ALLOW_TODATE,
+           GRP_GUBUN
+       )
+       VALUES
+       (
+          #serial#,
+          #empNo#,
+          #userId#,
+          #expDm#,
+          #reason#,
+          0,
+          #startDm#,
+          #endDm#,
+          'P'
+       )
+ </insert>
+
+<!-- 반출잠김 중복 확인 -->
+<select id="DaoMyApproval.select.chk.same.vpn.mssql" parameterClass="coTtObjParams" resultClass="int">
+SELECT
+ COUNT(SERIAL) AS CNT
+FROM
+ PC_VPN_IPEXCEPTION
+WHERE
+ SERIAL = #serial#
+ </select>
+
+ <!--  반출잠김 업데이트 -->
+ <update id="DaoMyApproval.update.appr.exception.vpn.mssql" parameterClass="coTtObjParams">
+ UPDATE
+     PC_VPN_IPEXCEPTION
+   SET
+     SERIAL = #serial#,
+     VALUE1  = '0',
+     ALLOW_FROMDATE = #startDm#,
+     ALLOW_TODATE = #endDm#,
+     REG_EMPNO = #userId#,
+     GRP_GUBUN =    #grpGubun#,
+     EXP_DESC =  #reason#,
+     EXP_DATE  =    #expDm#
+ WHERE
+      SERIAL = #serial#
+ </update>
+
+ <!--  반출잠김 적용 -->
+ <insert id="DaoMyApproval.insert.appr.exception.vpn.mssql" parameterClass="coTtObjParams">
+ INSERT
+  INTO PC_VPN_IPEXCEPTION
+       (
+           SERIAL,
+           VALUE1,
+           ALLOW_FROMDATE,
+           ALLOW_TODATE,
+           REG_EMPNO,
+           GRP_GUBUN,
+           EXP_DESC,
+           EXP_DATE
+       )
+       VALUES
+       (
+          #serial#,
+          0,
+          #startDm#,
+          #endDm#,
+          #userId#,
+          #grpGubun#,
+          #reason#,
+          #expDm#
+       )
+ </insert>
+
+
+ <!-- incops5 나의PC 보유 토탈 -->
+ <select id="DaoDeptPcCheck.incops5.mypc.totcnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+    SELECT
+       COUNT(*)
+    FROM
+       incops5.dbo.PC_BASIC
+    WHERE
+      EMPNO = #empNo#
+ </select>
+
+ <!-- incops5 나의 PC 정보 -->
+ <select id="DaoDeptPcCheck.incops5.mypc.info.list.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic">
+    SELECT
+       MAC as mac
+       ,EMPNO as empNo
+    FROM
+       incops5.dbo.PC_BASIC
+    WHERE
+       EMPNO = #empNo#
+ </select>
+
+ <select id="incops5.pc.basic.obj.all.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic">
+SELECT top 1
+ SERIAL     AS     serial,
+ EMPNO     AS   empNo,
+ HNAME     AS   hName,
+ INDEPTNM    AS   indeptNm,
+ SDEPTNM     AS   sdeptNm,
+ LOCATENM    AS   locateNm,
+ BUILDNM     AS   buildNm,
+ AREA     AS   area,
+ START_DATE    AS   startDate,
+ LATEST_DATE    AS   latestDate,
+ ACCESS_CNT    AS   accessCnt,
+ ERROR_CNT    AS   errorCnt,
+ PC_TYPE     AS   pcType,
+ IP_ADDR     AS   ipAddr,
+ VERSION     AS   version,
+ MODEL     AS   model,
+ PC_GUBUN    AS   pcGubun,
+ OS     AS   os,
+ REMARKS     AS   remarks,
+ SEBU_AREA    AS   sebuArea,
+ PROP_NO     AS   propNo,
+ COMPUTER_NAME    AS   computerName,
+ CPUID              AS   cpuId,
+ MAC     AS   mac,
+ OWNERSHIP    AS   ownership,
+ PROP_GUBUN    AS   propGubun,
+ REAL_IPADDR    AS   realIpaddr,
+ PC_USED     AS   pcUsed,
+ TEMP_SAVE    AS   tempSave,
+ RESIDENCE    AS   residence,
+ VUP_TIME    AS   vupTime,
+ DEPTCODE    AS   deptCode,
+ MADECODE    AS   madeCode,
+ BUILDVER    AS   buildVer
+FROM
+ incops5.dbo.PC_BASIC 
+WHERE EMPNO = #userId#
+AND IP_ADDR = #userIp#
+ <!--  AND IP_ADDR = #ipAddr# -->
+</select>
+
+
+
+
+<!-- ################ 자가진단 DWR ################# -->
+
+<select id="DaoDeptPcCheck.incops5.group.dept.pcchk.user.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic">
+  SELECT
+    *
+  FROM
+  PC_BASIC
+  WHERE EMPNO = #userId#
+  AND IP_ADDR = #userIp#
+
+</select>
+
+</sqlMap>

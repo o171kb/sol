@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoDept" type="tt.com.bean.VoCoDept" />
+ <typeAlias alias="voBoard" type="tt.bean.VoBoard" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- CUSTOMER ALL SELECT 절 -->
+ <sql id="customer.all.select.mssql">
+  SELECT
+   BOARD_NO        AS boardNo,
+   BOARD_TITLE     AS boardTitle,
+   CONTENTS        AS contents,
+   BOARD_TP        AS boardTp,
+   FILE_NM         AS fileNm,
+   FILE_URL        AS fileUrl,
+   REG_DM          AS regDm,
+   UPD_DM          AS updDm,
+   USER_YN         AS userYn,
+   USER_ID         AS userId
+  FROM
+   TBOARD
+ </sql>
+
+ <!-- PAGE SELECT START 절 -->
+ <sql id="customer.page.list.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="customer.page.list.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="customer.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="customer.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공지사항 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 공지사항 페이지 SELECT 절 -->
+ <sql id="DaoCustomer.page.list.body.mssql">
+  SELECT
+   BOARD_NO        AS boardNo,
+   BOARD_TITLE     AS boardTitle,
+   CONTENTS        AS contents,
+   BOARD_TP        AS boardTp,
+   FILE_NM         AS fileNm,
+   FILE_URL        AS fileUrl,
+   REG_DM          AS regDm,
+   UPD_DM          AS updDm,
+   USER_YN         AS userYn,
+   USER_ID         AS userId,
+   ROW_NUMBER() OVER( ORDER BY CONVERT(integer,BOARD_NO) DESC) AS ROWNUM
+  FROM
+   TBOARD
+  WHERE
+   USER_YN = '1'
+  AND
+   BOARD_TP = #boardTp#
+   
+  <isEqual prepend="AND" property="searchStatus" compareValue="0">
+   		BOARD_TITLE LIKE '%' + #searchTitle# + '%'
+  </isEqual>
+  <isEqual prepend="AND" property="searchStatus" compareValue="1">
+   		USER_ID LIKE '%' + #searchTitle# + '%'
+   </isEqual>
+   
+  <!-- <isNotEmpty prepend="AND" property="searchTitle">
+   BOARD_TITLE LIKE '%' + #searchTitle# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchUserId">
+   USER_ID LIKE '%' + #searchUserId# + '%'
+  </isNotEmpty> -->
+  <!-- <isNotEmpty prepend="AND" property="searchStartDm">
+   <isNotEmpty property="searchEndDm">
+     REG_DM BETWEEN #searchStartDm# AND #searchEndDm#
+   </isNotEmpty>
+  </isNotEmpty> -->
+ </sql>
+
+
+ <select id="DaoCustomer.page.list.mssql" parameterClass="coTtObjParams" resultClass="voBoard">
+  <include refid="customer.page.list.start.mssql"/>
+  <include refid="DaoCustomer.page.list.body.mssql"/>
+  <include refid="customer.page.list.end.mssql"/>
+ </select>
+
+ <select id="DaoCustomer.page.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  <include refid="customer.page.cnt.start.mssql"/>
+  <include refid="DaoCustomer.page.list.body.mssql"/>
+  <include refid="customer.page.cnt.end.mssql"/>
+ </select>
+
+ <select id="DaoCustomer.page.view.mssql" parameterClass="coTtObjParams" resultClass="voBoard">
+  <include refid="customer.all.select.mssql"/>
+  WHERE BOARD_NO = #boardNo# AND
+     BOARD_TP = #boardTp# AND
+     USER_YN = '1'
+ </select>
+
+</sqlMap>

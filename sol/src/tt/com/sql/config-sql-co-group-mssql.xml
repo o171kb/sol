@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoUserGrp" type="tt.com.bean.VoCoUserGrp" />
+ <typeAlias alias="voCoUserGrpMenu" type="tt.com.bean.VoCoUserGrpMenu" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+ <!-- TUSERGRP ALL SELECT 절 -->
+ <sql id="group.all.select.mssql">
+  SELECT
+   USER_GRP_NO   AS userGrpNo,
+   USER_GRP_ID   AS userGrpId,
+   GRP_NM        AS grpNm,
+   GRP_EXP       AS grpExp,
+   GRP_TP        AS grpTp,
+   GRP_CL        AS grpCl,
+   MEM_DEPT_NO   AS memDeptNo,
+   APPR_YN       AS apprYn,
+   <!--MST_YN        AS mstYn,
+    GRP_YN        AS grpYn, 
+   SELF_YN       AS selfYn,-->
+   REG_DM        AS regDm,
+   UPD_DM        AS updDm,
+   USE_YN        AS useYn,
+   USER_ID       AS userId,
+<!--    COMPADMIN  AS compAdmin,
+   COMPADCODE AS compAdCode, -->
+   ROW_NUMBER() OVER( ORDER BY USER_GRP_ID ) AS ROWNUM
+  FROM
+   TUSERGRP
+ </sql>
+
+
+
+
+ <!-- PAGE SELECT START 절 -->
+ <sql id="group.page.select.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="group.page.select.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="group.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="group.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+
+ <!-- ############################################################################################## -->
+ <!-- 그룹 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 그룹검색 페이지 SELECT 절 -->
+ <sql id="DaoCoGroup.group.search.page.list.body.mssql">
+  <include refid="group.all.select.mssql"/>
+  WHERE
+   USE_YN='1'
+  <isEqual prepend="AND" property="searchStatus" compareValue="0">
+   		USER_GRP_ID LIKE '%' + #searchGrpId# + '%'
+  </isEqual>
+  <isEqual prepend="AND" property="searchStatus" compareValue="1">
+   		GRP_NM LIKE '%' + #searchGrpId# + '%'
+  </isEqual>
+   
+  <!-- <isNotEmpty prepend="AND" property="searchGrpId">
+   USER_GRP_ID LIKE '%' + #searchGrpId# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchGrpNm">
+   GRP_NM LIKE '%' + #searchGrpNm# + '%'
+  </isNotEmpty> -->
+ </sql>
+
+ <select id="DaoCoGroup.group.search.page.list.mssql" parameterClass="coTtObjParams" resultClass="voCoUserGrp">
+  <include refid="group.page.select.start.mssql"/>
+  <include refid="DaoCoGroup.group.search.page.list.body.mssql"/>
+  <include refid="group.page.select.end.mssql"/>
+ </select>
+
+ <select id="DaoCoGroup.group.search.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  <include refid="group.page.cnt.start.mssql"/>
+  <include refid="DaoCoGroup.group.search.page.list.body.mssql"/>
+  <include refid="group.page.cnt.end.mssql"/>
+ </select>
+
+  <!-- 그룹삭제 -->
+ <delete id="DaoCoGroup.group.delete.mssql" parameterClass="coTtObjParams" >
+   UPDATE
+       TUSERGRP
+   SET
+       USE_YN =  '0'
+   WHERE
+       USER_GRP_NO = #userGrpNo#
+ </delete>
+
+ <!-- 그룹정보 SELECT 절 -->
+ <select id="DaoCoGroup.group.search.dtl.mssql" parameterClass="coTtObjParams" resultClass="voCoUserGrp">
+   <include refid="group.all.select.mssql"/>
+   WHERE
+       USER_GRP_NO = #userGrpNo# AND
+       USE_YN =  '1'
+ </select>
+
+ <!-- 그룹정보수정  -->
+ <update id="DaoCoGroup.group.info.update.mssql" parameterClass="coTtObjParams" >
+   UPDATE
+       TUSERGRP
+   SET
+       GRP_NM =  #GRP_NM#,
+       GRP_EXP = #GRP_EXP#,
+       APPR_YN = #APPR_YN#
+       <!--, MST_YN = #MST_YN#,
+        GRP_YN = #GRP_YN#, 
+       SELF_YN = #SELF_YN#,
+       COMPADMIN = #COMPADMIN#,
+       COMPADCODE = #COMPADCODE#-->
+   WHERE
+       USER_GRP_NO = #USER_GRP_NO#
+ </update>
+
+ <!-- 그룹메뉴수정  -->
+ <update id="DaoCoGroup.group.menu.update.mssql" parameterClass="coTtObjParams" >
+   UPDATE
+       TDEPT
+   SET
+       DEPT_NM =  #deptNm#,
+       DEPT_NM_EN = #deptNmEn#,
+       DEPT_EXP = #deptExp#
+   WHERE
+       DEPT_NO = #deptNo#
+ </update>
+
+ <!-- 그룹ID 중복체크 SELECT절 -->
+ <select id="DaoCoGroup.group.check.user.grp.id.mssql" parameterClass="coTtObjParams" resultClass="voCoUserGrp">
+   <include refid="group.all.select.mssql"/>
+   WHERE
+       USER_GRP_ID = #userGrpId#
+ </select>
+
+ <!-- 그룹검색팝업 SELECT 절 -->
+ <sql id="DaoCoGroup.group.search.list.body.mssql">
+  SELECT
+   DEPT_NO AS deptNo,
+   DEPT_CD AS deptCd,
+   MADE_CD AS madeCd,
+   HIGH_DEPT_CD AS highDeptCd,
+   DEPT_NM AS deptNm,
+   DEPT_NM_EN AS deptNmEn,
+   DEPT_EXP AS deptExp,
+   DEPT_EML AS deptEml,
+   DEPT_TEL_NO AS deptTelNo,
+   DEPT_ZIP_CD AS deptZipCd,
+   DEPT_ZIP_ADDR1 AS deptZipAddr1,
+   DEPT_ZIP_ADDR2 AS deptZipAddr2,
+   DEPT_TP AS deptTp,
+   REG_DM AS regDm,
+   UPD_DM AS updDm,
+   USE_YN AS useYn,
+   USER_ID AS userId
+  FROM
+   TDEPT
+  WHERE
+   USE_YN='1'
+ </sql>
+
+ <select id="DaoCoGroup.group.list.all.mssql" parameterClass="coTtObjParams" resultClass="voCoUserGrp">
+  <include refid="DaoCoGroup.group.search.list.body.mssql"/>
+  ORDER BY MADE_CD
+ </select>
+
+
+ <!-- 그룹등록용 상위부서가 가지고 있는 부서수 + 1 SELECT 절 -->
+ <select id="DaoCoGroup.group.highdept.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  SELECT
+      COUNT(*) + 1 AS CNT
+  FROM
+      TDEPT
+  WHERE
+      HIGH_DEPT_CD = #highDeptCd#
+ </select>
+
+ <!-- 그룹상세 BY DEPT_CD SELECT절 -->
+ <select id="DaoCoGroup.group.dtl.cd.mssql" parameterClass="coTtObjParams" resultClass="voCoUserGrp">
+   <include refid="group.all.select.mssql"/>
+   WHERE DEPT_CD = #deptCd#
+       AND  USE_YN='1'
+ </select>
+
+ <!-- 그룹등록 INSERT절 -->
+ <insert id="DaoCoGroup.group.insert.user.gtp.info.mssql" parameterClass="coTtObjParams" >
+  INSERT INTO TUSERGRP (
+    USER_GRP_NO, USER_GRP_ID, GRP_NM,
+    GRP_EXP, GRP_TP, GRP_CL,
+    MEM_DEPT_NO, APPR_YN, REG_DM,
+    <!-- UPD_DM, USE_YN, USER_ID, COMPADMIN, COMPADCODE, GRP_YN, SELF_YN, MST_YN -->
+    UPD_DM, USE_YN, USER_ID
+  )VALUES(
+    #USER_GRP_NO#, #USER_GRP_ID#, #GRP_NM#,
+    #GRP_EXP#, #GRP_TP#, #GRP_CL#,
+    #MEM_DEPT_NO#, #APPR_YN#, #REG_DM#,
+<!--     #UPD_DM#, #USE_YN#, #USER_ID#, #COMPADMIN#, #COMPADCODE#, #GRP_YN#, #SELF_YN#, #MST_YN# -->
+    #UPD_DM#, #USE_YN#, #USER_ID#
+  )
+ </insert>
+
+ <!-- 그룹등록용 MAX 부서번호취득 -->
+ <select id="DaoCoGroup.group.max.user.grp.no.mssql" resultClass="int">
+  SELECT
+    MAX(USER_GRP_NO) AS USER_GRP_MAX_NO
+  FROM
+    TUSERGRP
+ </select>
+
+ <!-- ############################################################################################## -->
+ <!-- 사용자그룹메뉴 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 그룹메뉴삭제  -->
+ <delete id="DaoCoGroup.group.physical.delete.mssql" parameterClass="coTtObjParams" >
+   DELETE FROM TUSERGRPMENU
+   WHERE USER_GRP_NO = #USER_GRP_NO#
+ </delete>
+
+
+ <!-- 그룹메뉴등록 INSERT절 -->
+ <insert id="DaoCoGroup.group.menu.insert.mssql" parameterClass="coTtObjParams" >
+  INSERT INTO TUSERGRPMENU (
+   USER_GRP_NO, MENU_ID, MENU_LVL
+  )VALUES(
+   #USER_GRP_NO#, #MENU_ID#, #MENU_LVL#
+  )
+ </insert>
+
+ <!-- 그룹메뉴정보 SELECT 절 -->
+ <select id="DaoCoGroup.group.user.grp.menu.list.mssql" parameterClass="coTtObjParams" resultClass="voCoUserGrpMenu">
+  SELECT
+   TUGM.MENU_LVL AS menuLvl,
+   TM.MENU_ACTION AS menuAction,
+   TM.MENU_CL AS menuCl
+  FROM
+   TUSERGRP TUG,
+   TUSERGRPMENU TUGM,
+   TMENU TM
+  WHERE
+   TUG.USER_GRP_NO = TUGM.USER_GRP_NO AND
+   TUGM.MENU_ID = TM.MENU_ID AND
+   TUG.USER_GRP_NO = #userGrpNo#
+ </select>
+
+ <!-- 그룹에 속한 user list 총 갯수 -->
+ <select id="DaoCoGroup.group.user.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  SELECT
+     count(*) as CNT
+   FROM
+     TUSER
+   WHERE
+     USER_GRP_NO = #userGrpNo#
+ </select>
+
+
+</sqlMap>

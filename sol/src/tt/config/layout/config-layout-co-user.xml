@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.user.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- 시스템|사용자관리 -->
+ <definition name="admin.user.search.list" extends="admin.user.template.tiles">
+  <put-attribute name="title" value="시스템|사용자관리" />
+  <put-attribute name="body" value="/WEB-INF/jsp/com/module/user/adUserSearchList.jsp" />
+ </definition>
+
+ <!-- 시스템|사용자수정 -->
+ <definition name="admin.user.modify" extends="admin.user.template.tiles">
+  <put-attribute name="title" value="시스템|사용자수정" />
+  <put-attribute name="body" value="/WEB-INF/jsp/com/module/user/adUserModify.jsp" />
+ </definition>
+
+ <!-- 시스템|사용자등록 -->
+ <definition name="admin.user.regist" extends="admin.user.template.tiles">
+  <put-attribute name="title" value="시스템|사용자등록" />
+  <put-attribute name="body" value="/WEB-INF/jsp/com/module/user/adUserRegist.jsp" />
+ </definition>
+
+ <!-- 시스템|엑셀다운로드 -->
+ <definition name="admin.user.excel.list" template="/WEB-INF/jsp/com/module/user/adUserExcelList.jsp"/>
+</tiles-definitions>

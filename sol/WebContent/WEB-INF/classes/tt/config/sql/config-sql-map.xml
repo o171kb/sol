@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+ <!-- common -->
+ <sqlMap resource="tt/com/sql/config-sql-co-code-mssql.xml" />
+ <sqlMap resource="tt/com/sql/config-sql-co-login-mssql.xml" />
+ <sqlMap resource="tt/com/sql/config-sql-co-dept-mssql.xml" />
+ <sqlMap resource="tt/com/sql/config-sql-co-group-mssql.xml" />
+ <sqlMap resource="tt/com/sql/config-sql-co-menu-mssql.xml" />
+ <sqlMap resource="tt/com/sql/config-sql-co-user-mssql.xml" />
+ <!-- module -->
+
+ <!--
+ 개발이 시작되면 아래의 파일들을 작성합시다.
+
+ front
+ <sqlMap resource="tt/config/sql/config-sql-front-mssql.xml" />
+ admin
+ <sqlMap resource="tt/config/sql/config-sql-admin-mssql.xml" />
+  -->
+  <!-- exception -->
+  <sqlMap resource="tt/config/sql/config-sql-ad-exct-mssql.xml" />
+  <!-- main -->
+  <sqlMap resource="tt/config/sql/config-sql-ad-main-mssql.xml"/>
+  <!-- exception draft-->
+  <sqlMap resource="tt/config/sql/config-sql-ad-exct-draft-mssql.xml" />
+  <!-- exception site -->
+<!--   <sqlMap resource="tt/config/sql/config-sql-exct-site-draft-mssql.xml" /> -->
+  <!-- exception escort draft-->
+  <sqlMap resource="tt/config/sql/config-sql-ad-exct-escort-draft-mssql.xml" />
+  <!-- customer notice  -->
+  <sqlMap resource="tt/config/sql/config-sql-ad-customer-mssql.xml"/>
+  <!-- 시스템>게시관리 -->
+  <sqlMap resource="tt/config/sql/config-sql-ad-board-search-mssql.xml"/>
+  <!-- 나의신청현황 -->
+  <sqlMap resource="tt/config/sql/config-sql-ad-my-draft-mssql.xml"/>
+  <!-- attach draft-->
+  <sqlMap resource="tt/config/sql/config-sql-ad-exct-attach-draft-mssql.xml" />
+  <!-- 나의결재현황 -->
+  <sqlMap resource="tt/config/sql/config-sql-ad-my-approval-mssql.xml" />
+  <!-- 자가진단 -->
+  <sqlMap resource="tt/config/sql/config-sql-my-pc-Check-mssql.xml" />
+  <sqlMap resource="tt/config/sql/config-sql-myDept-pc-Check-mssql.xml" />
+  
+  <!-- api -->
+  <sqlMap resource="tt/config/sql/config-sql-ad-exct-api-mssql.xml" />
+  
+  <sqlMap resource="tt/config/sql/config-sql-exct-site-wkPolicy-mssql.xml" />
+</sqlMapConfig>

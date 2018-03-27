@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoDept" type="tt.com.bean.VoCoDept" />
+ <typeAlias alias="voBoard" type="tt.bean.VoBoard" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- CUSTOMER ALL SELECT 절 -->
+ <sql id="main.all.select.mssql">
+  SELECT
+   BOARD_NO        AS boardNo,
+   BOARD_TITLE     AS boardTitle,
+   CONTENTS        AS contents,
+   BOARD_TP        AS boardTp,
+   FILE_NM         AS fileNm,
+   FILE_URL        AS fileUrl,
+   REG_DM          AS regDm,
+   UPD_DM          AS updDm,
+   USER_YN         AS userYn,
+   USER_ID         AS userId
+  FROM
+   TBOARD
+ </sql>
+
+ <!-- PAGE SELECT START 절 -->
+ <sql id="main.page.list.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="main.page.list.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="main.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="main.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+
+ <!-- ############################################################################################## -->
+ <!-- 게시관리 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 게시관리 페이지 SELECT 절 -->
+ <sql id="DaoMain.page.list.body.mssql">
+  SELECT
+     BOARD_NO        AS boardNo,
+     BOARD_TITLE     AS boardTitle,
+     CONTENTS        AS contents,
+     BOARD_TP        AS boardTp,
+     FILE_NM         AS fileNm,
+     FILE_URL        AS fileUrl,
+     REG_DM          AS regDm,
+     UPD_DM          AS updDm,
+     USER_YN         AS userYn,
+     USER_ID         AS userId,
+     ROW_NUMBER() OVER( ORDER BY CONVERT(integer,BOARD_NO) DESC) AS ROWNUM
+  FROM
+     TBOARD
+  WHERE
+     USER_YN = '1'
+  AND
+     BOARD_TP = '01'
+ </sql>
+
+ <select id="DaoMain.page.list.mssql" parameterClass="coTtObjParams" resultClass="voBoard">
+  <include refid="DaoMain.page.list.body.mssql"/>
+ </select>
+
+ <select id="DaoMain.page.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  <include refid="main.page.cnt.start.mssql"/>
+  <include refid="DaoMain.page.list.body.mssql"/>
+  <include refid="main.page.cnt.end.mssql"/>
+ </select>
+
+</sqlMap>

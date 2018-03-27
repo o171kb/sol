@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.incops5.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+  <definition name="admin.incopys5.db.test.tiles" extends="admin.incops5.template.tiles">
+  <put-attribute name="title" value="에스코트DB태스트" />
+  <put-attribute name="body" value="/WEB-INF/jsp/admin/incopys5Db_test.jsp" />
+ </definition>
+
+</tiles-definitions>

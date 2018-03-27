@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd" >
+<beans>
+ <!-- Tile 2 Configurer -->
+ <bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+  <property name="definitions">
+   <list>
+
+    <!--=============== admin =============== -->
+    <value>classpath:/tt/config/layout/config-layout-*.xml</value>
+    <!--=============== front =============== -->
+    <!--=============== i18n =============== -->
+    <value>classpath:/tt/config/layout/i18n-test.xml</value>
+   </list>
+  </property>
+  <property name="preparerFactoryClass" value="org.springframework.web.servlet.view.tiles2.SpringBeanPreparerFactory" />
+ </bean>
+</beans>

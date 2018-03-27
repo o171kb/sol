@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- - DispatcherServlet application context for Application's web tier. -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+ xmlns:tx="http://www.springframework.org/schema/tx"
+ xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.1.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx-3.1.xsd">
+
+ <!-- - The controllers are autodetected POJOs labeled with the @Controller annotation. -->
+ <!-- <context:component-scan base-package="action"> <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+  <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/> <context:exclude-filter type="annotation"
+  expression="org.springframework.stereotype.Repository"/> </context:component-scan> -->
+ <tx:annotation-driven proxy-target-class="true" />
+
+ <context:component-scan base-package="tt" />
+ <!-- - The form-based controllers within this application provide @RequestMapping - annotations at the type level for path
+  mapping URLs and @RequestMapping - at the method level for request type mappings (e.g., GET and POST). - In contrast, ClinicController
+  - which is not form-based - provides - @RequestMapping only at the method level for path mapping URLs. - - DefaultAnnotationHandlerMapping
+  is driven by these annotations and is - enabled by default with Java 5+. -->
+
+ <!-- - This bean processes annotated handler methods, applying Application-specific PropertyEditors - for request parameter
+  binding. It overrides the default AnnotationMethodHandlerAdapter. -->
+ <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+  <property name="webBindingInitializer">
+   <bean class="tt.com.handler.HdCoBindingInitializer" />
+  </property>
+ </bean>
+ <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" />
+
+ <!-- - This bean resolves specific types of exceptions to corresponding logical - view names for error views. The default
+  behaviour of DispatcherServlet - is to propagate all exceptions to the servlet container: this will happen - here with all
+  other types of exceptions. -->
+ <!-- <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver"> <property name="defaultErrorView"
+  value="com/bizError"/> <property name="exceptionMappings"> <props> <prop key="org.springframework.dao.DataAccessException">com/dataAccessFailure</prop>
+  <prop key="org.springframework.transaction.TransactionException">com/transactionFailure</prop> <prop key="egovframework.rte.fdl.cmmn.exception.EgovBizException">com/bizError</prop>
+  <prop key="org.springframework.security.AccessDeniedException">com/accessDenied</prop> </props> </property> </bean> -->
+
+ <!-- Tiles 2 Static -->
+ <bean id="viewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+  <property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView" />
+  <property name="order" value="0" />
+ </bean>
+
+ <!-- - This bean configures the 'prefix' and 'suffix' properties of - InternalResourceViewResolver, which resolves logical
+  view names - returned by Controllers. For example, a logical view name of "vets" - will be mapped to "/WEB-INF/jsp/vets.jsp". -->
+
+ <!-- Annotate for Tiles -->
+ <!-- <bean class="org.springframework.web.servlet.view.UrlBasedViewResolver" p:order="1" p:viewClass="org.springframework.web.servlet.view.JstlView"
+  p:prefix="/WEB-INF/jsp/" p:suffix=".jsp"/> -->
+
+ <!-- - Message source for this context, loaded from localized "messages_xx" files. - Could also reside in the root application
+  context, as it is generic, - but is currently just used within Application's web tier. <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource"
+  p:basename="messages"/> -->
+
+
+ <!-- For Pagination Tag -->
+ <bean id="adimageRenderer" class="tt.renderer.RendererPaginationAdmin" />
+ <bean id="frimageRenderer" class="tt.renderer.RendererPaginationFront" />
+
+ <bean id="paginationManager" class="egovframework.rte.ptl.mvc.tags.ui.pagination.DefaultPaginationManager">
+  <property name="rendererType">
+   <map>
+    <entry key="ad_image" value-ref="adimageRenderer" />
+    <entry key="fr_image" value-ref="frimageRenderer" />
+   </map>
+  </property>
+ </bean>
+ <!-- /For Pagination Tag -->
+
+ <!-- ====================================================================== -->
+ <!-- Properties Configuration -->
+ <!-- ====================================================================== -->
+ <context:property-placeholder location="classpath:tt/config/props/*.properties" />
+
+ <bean id="propsConfigurer" class="tt.com.utils.UtCoPropsUtils$PropsConfigurer">
+  <property name="ignoreResourceNotFound" value="false" />
+  <property name="locations">
+   <list>
+    <value>classpath:tt/config/props/config-*.properties
+        </value>
+   </list>
+  </property>
+ </bean>
+
+</beans>

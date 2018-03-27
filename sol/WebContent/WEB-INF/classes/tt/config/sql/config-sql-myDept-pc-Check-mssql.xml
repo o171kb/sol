@@ -1,0 +1,737 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voSelfDiaGroup" type="tt.bean.VoSelfDiaGroup"/>
+ <typeAlias alias="voSelfDiaItem" type="tt.bean.VoSelfDiaItem"/>
+ <typeAlias alias="voSelfDiagnostic" type="tt.bean.VoSelfDiagnostic"/>
+ <typeAlias alias="voCoDept" type="tt.com.bean.VoCoDept"/>
+ <typeAlias alias="voPcBasic" type="tt.bean.VoPcBasic"/>
+ <typeAlias alias="voPcCheck" type="tt.bean.VoPcCheck"/>
+ <typeAlias alias="voCoCodeDtl" type="tt.com.bean.VoCoCodeDtl"/>
+
+ <select id="DaoDeptPcCheck.self.myDept.mssql" parameterClass="coTtObjParams" resultClass="voCoDept">
+     SELECT
+        b.DEPT_NM as deptNm
+       ,b.DEPT_NO as deptNO
+       ,b.DEPT_CD as deptCd
+       ,a.USER_ID as userId
+     FROM
+        leedb.dbo.TUSER a
+     LEFT JOIN
+        leedb.dbo.TDEPT b
+     ON
+        a.DEPT_NO = b.DEPT_NO
+     LEFT JOIN
+        leedb.dbo.SELF_DIAGNOSTIC c
+     ON
+        c.UserId = a.USER_ID
+     WHERE
+        a.USER_ID = #userId#
+     GROUP BY
+        a.USER_ID ,b.DEPT_NM ,b.DEPT_NO, b.DEPT_CD
+       <isNotNull property="searchDate">
+         <isNotEqual property="searchDate" compareValue="0" prepend="AND">
+            <![CDATA[
+                a.InsDate > DATEADD(MM, -#searchDate#, GETDATE())
+            ]]>
+         </isNotEqual>
+       </isNotNull>
+ </select>
+
+ <!-- 2013.07.03 수정 -->
+ <select id="DaoDeptPcCheck.self.myDept.register.totCnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+   WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel) as
+   (
+    SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel
+    FROM leedb.dbo.TDEPT
+    WHERE DEPT_CD = #deptCd#
+    UNION ALL
+    SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1)
+    FROM leedb.dbo.TDEPT T
+    INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+   )
+   select COUNT(*)
+   from Category a
+    ,leedb.dbo.TUSER b
+   WHERE a.DEPT_NO = b.DEPT_NO
+   OPTION (MAXRECURSION 0)
+ </select>
+ <!-- SELECT
+      COUNT(*)
+   FROM
+      leedb.dbo.TUSER a
+   WHERE a.DEPT_NO = #deptNo#
+    -->
+
+    <!-- 2013.07.10 페이징 TotCnt -->
+    <!-- 대상자 리스트 토탈 -->
+    <select id="DaoDeptPcCheck.group.dept.user.page.mssql" parameterClass="coTtObjParams" resultClass="int">
+      <![CDATA[
+        WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+           (
+            SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+            FROM leedb.dbo.TDEPT
+            WHERE DEPT_CD = #deptCd#
+            UNION ALL
+            SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+            FROM leedb.dbo.TDEPT T
+            INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+           )
+            select COUNT(*)
+
+            from Category a
+          , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+          , leedb.dbo.TUSER b
+          left outer join
+          (
+            select rst.EMPNO, COUNT(rst.MacAddress) AS PC_CNT, SUM(ISNULL(rst.resultCnt, 0)) AS NG_CNT
+            from
+              (
+                select t1.EMPNO, t2.MacAddress, t2.insdate, t2.resultCnt, ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+                from incops5.dbo.PC_BASIC t1
+                left outer join (
+                  SELECT t1.UserId, t1.MacAddress, t1.insdate, t2.resultCnt
+                  FROM leedb.dbo.SELF_DIAGNOSTIC t1,
+                  (
+                    select sum(case when IsSafety <> '1' then 1 else 0 end) as resultCnt, SelfDiagnosticIdx from leedb.dbo.SELF_DIAGNOSTIC_RESULT
+
+                    group by SelfDiagnosticIdx
+                  ) t2
+                  where t1.Idx = t2.SelfDiagnosticIdx
+                ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+              ) as rst
+            WHERE TT_Sort = 1
+            group by EMPNO
+          ) as rst on b.USER_ID = rst.EMPNO
+
+          left outer join
+          (
+            select rst.EMPNO, rst.InsDate
+            from
+              (
+                select t1.EMPNO, t2.insdate, ROW_NUMBER() over (PARTITION BY EMPNO Order By InsDate desc) as TT_Sort
+                from incops5.dbo.PC_BASIC t1
+                inner join leedb.dbo.SELF_DIAGNOSTIC as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+              ) as rst
+            WHERE TT_Sort = 1
+          ) as rst2 on b.USER_ID = rst2.EMPNO
+
+        WHERE a.DEPT_NO = b.DEPT_NO
+          and b.USER_POSITION = c.CD_DTL_NO
+      ]]>
+
+
+   </select>
+
+  <!-- 대상자 리스트 -->
+  <select id="DaoDeptPcCheck.group.dept.user.list.mssql" parameterClass="coTtObjParams" resultClass="voSelfDiagnostic">
+      <![CDATA[
+        WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+        (
+         SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+         FROM leedb.dbo.TDEPT
+         WHERE DEPT_CD = #deptCd#
+         UNION ALL
+         SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+         FROM leedb.dbo.TDEPT T
+         INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+        )
+        select * from
+        (
+        select ROW_NUMBER() OVER( ORDER BY a.MADE_CD, c.PRIR_SEQ desc ) AS ROWNUM, a.MADE_CD as madeCd, a.DEPT_NO as deptNo, a.DEPT_CD as deptCd, a.DEPT_NM as deptNm, b.USER_ID as userId, b.USER_NM as userNm, b.USER_POSITION as userPosition, c.CD_DTL_NM as cdDtlNm
+        , rst.PC_CNT as pcCnt, rst.NG_CNT as chkResult, rst2.InsDate
+        from Category a
+          , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+          , leedb.dbo.TUSER b
+          left outer join
+          (
+            select rst.EMPNO, COUNT(rst.MacAddress) AS PC_CNT, SUM(ISNULL(rst.resultCnt, 0)) AS NG_CNT
+            from
+              (
+                select t1.EMPNO, t2.MacAddress, t2.insdate, t2.resultCnt, ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+                from incops5.dbo.PC_BASIC t1
+                left outer join (
+                  SELECT t1.UserId, t1.MacAddress, t1.insdate, t2.resultCnt
+                  FROM leedb.dbo.SELF_DIAGNOSTIC t1,
+                  (
+                    select sum(case when IsSafety <> '1' then 1 else 0 end) as resultCnt, SelfDiagnosticIdx from leedb.dbo.SELF_DIAGNOSTIC_RESULT
+
+                    group by SelfDiagnosticIdx
+                  ) t2
+                  where t1.Idx = t2.SelfDiagnosticIdx
+                ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+              ) as rst
+            WHERE TT_Sort = 1
+            group by EMPNO
+          ) as rst on b.USER_ID = rst.EMPNO
+
+          left outer join
+          (
+            select rst.EMPNO, rst.InsDate
+            from
+              (
+                select t1.EMPNO, t2.insdate, ROW_NUMBER() over (PARTITION BY EMPNO Order By InsDate desc) as TT_Sort
+                from incops5.dbo.PC_BASIC t1
+                inner join leedb.dbo.SELF_DIAGNOSTIC as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+              ) as rst
+            WHERE TT_Sort = 1
+          ) as rst2 on b.USER_ID = rst2.EMPNO
+
+        WHERE a.DEPT_NO = b.DEPT_NO
+          and b.USER_POSITION = c.CD_DTL_NO
+
+
+        )as forCnt
+      ]]>
+          <isNotEqual property="isExcel" compareValue="True">
+           <![CDATA[
+           WHERE
+               forCnt.rownum <= #toIndex#
+             AND
+               forCnt.rownum > #fromIndex#
+           ]]>
+           </isNotEqual>
+
+         OPTION (MAXRECURSION 0)
+  </select>
+
+<!--     SELECT
+       A.USER_NM as userNm
+      ,A.USER_ID as userId
+      ,A.DEPT_NO as deptNo
+      ,A.USER_POSITION as userPosition
+    FROM
+       TUSER A
+    WHERE
+       A.USER_ID = 'admin' -->
+
+       <!-- 점검자 리스트 -->
+  <select id="DaoDeptPcCheck.group.dept.pcchk.user.list.mssql" parameterClass="coTtObjParams" resultClass="voSelfDiagnostic">
+    <![CDATA[
+     WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+    (
+     SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+     FROM leedb.dbo.TDEPT
+     WHERE DEPT_CD = #deptCd#
+     UNION ALL
+     SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+     FROM leedb.dbo.TDEPT T
+     INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+    )
+
+    select * from
+        (
+    select
+     ROW_NUMBER() OVER( ORDER BY a.MADE_CD, c.PRIR_SEQ desc ) AS ROWNUM,
+       a.gLevel,
+       a.MADE_CD as madeCd,
+       a.DEPT_NO as deptNo,
+       a.DEPT_CD as deptCd,
+       a.DEPT_NM as deptNm,
+       b.USER_ID as userId,
+       b.USER_NM as userNm,
+       b.USER_POSITION as userPosition,
+       c.CD_DTL_NM as cdDtlNm,
+       rst.insdate,
+       rst.resultCnt as chkResult,
+       rst.MacAddress macAddress,
+       rst.SERIAL as serialNumber,
+       rst.REAL_IPADDR as realIpAddr
+    from Category a
+     , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+     , leedb.dbo.TUSER b
+     inner join
+      (
+      select t1.SERIAL, t1.REAL_IPADDR, t1.EMPNO, t2.* ,ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+      from incops5.dbo.PC_BASIC t1
+      inner join (
+       SELECT t3.UserId, t3.MacAddress, t3.insdate, t2.resultCnt
+       FROM leedb.dbo.SELF_DIAGNOSTIC t3,
+       (
+        select sum(case when IsSafety <> '1' then 1 else 0 end) as resultCnt, SelfDiagnosticIdx from leedb.dbo.SELF_DIAGNOSTIC_RESULT
+        group by SelfDiagnosticIdx
+       ) t2
+       where t3.Idx = t2.SelfDiagnosticIdx
+      ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+     ) as rst on b.USER_ID = rst.EMPNO
+    WHERE a.DEPT_NO = b.DEPT_NO
+     and b.USER_POSITION = c.CD_DTL_NO
+     and (rst.TT_Sort = 1 or rst.MacAddress is null or rst.MacAddress = '')
+
+     )as forCnt
+     ]]>
+      <!-- Excel이 아닐때 페이징 Y + 검색조건  -->
+      <isNotEqual property="isExcel" compareValue="True">
+        <![CDATA[
+        WHERE
+            forCnt.rownum <= #toIndex#
+          AND
+            forCnt.rownum > #fromIndex#
+        ]]>
+        <isNotNull property="searchDate">
+           <isNotEqual property="searchDate" compareValue="0" prepend="AND">
+               forCnt.InsDate > DATEADD(MM, -#searchDate#, GETDATE())
+           </isNotEqual>
+        </isNotNull>
+      </isNotEqual>
+
+      <!-- Excel일때 페이징 N + 검색조건  -->
+      <isEqual property="isExcel" compareValue="True">
+        <isNotNull property="searchDate">
+          <isNotEqual property="searchDate" compareValue="0">
+            WHERE
+              forCnt.InsDate > DATEADD(MM, -#searchDate#, GETDATE())
+          </isNotEqual>
+        </isNotNull>
+      </isEqual>
+
+       OPTION (MAXRECURSION 0)
+  </select>
+
+  <!-- 점검자 토탈 -->
+  <select id="DaoDeptPcCheck.group.dept.pcchk.user.page.mssql" parameterClass="coTtObjParams" resultClass="int">
+   <![CDATA[
+     WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+    (
+     SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+     FROM leedb.dbo.TDEPT
+     WHERE DEPT_CD = #deptCd#
+     UNION ALL
+     SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+     FROM leedb.dbo.TDEPT T
+     INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+    )
+
+    select COUNT(*) from
+        (
+    select
+    ROW_NUMBER() OVER( ORDER BY a.MADE_CD, c.PRIR_SEQ desc ) AS ROWNUM,
+       a.gLevel,
+       a.MADE_CD as madeCd,
+       a.DEPT_NO as deptNo,
+       a.DEPT_CD as deptCd,
+       a.DEPT_NM as deptNm,
+       b.USER_ID as userId,
+       b.USER_NM as userNm,
+       b.USER_POSITION as userPosition,
+       c.CD_DTL_NM as cdDtlNm,
+       rst.insdate,
+       rst.resultCnt,
+       rst.MacAddress,
+       rst.SERIAL as serial,
+       rst.REAL_IPADDR as realIpaddr
+    from Category a
+     , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+     , leedb.dbo.TUSER b
+     inner join
+      (
+      select t1.SERIAL, t1.REAL_IPADDR, t1.EMPNO, t2.* ,ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+      from incops5.dbo.PC_BASIC t1
+      inner join (
+       SELECT t3.UserId, t3.MacAddress, t3.insdate, t2.resultCnt
+       FROM leedb.dbo.SELF_DIAGNOSTIC t3,
+       (
+        select sum(case when IsSafety <> '1' then 1 else 0 end) as resultCnt, SelfDiagnosticIdx from leedb.dbo.SELF_DIAGNOSTIC_RESULT
+        group by SelfDiagnosticIdx
+       ) t2
+       where t3.Idx = t2.SelfDiagnosticIdx
+      ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+     ) as rst on b.USER_ID = rst.EMPNO
+    WHERE a.DEPT_NO = b.DEPT_NO
+      and b.USER_POSITION = c.CD_DTL_NO
+      and (rst.TT_Sort = 1 or rst.MacAddress is null or rst.MacAddress = '')
+    ]]>
+     <!-- 날짜별 검색조건  -->
+      <isNotNull property="searchDate">
+         <isNotEqual property="searchDate" compareValue="0" prepend="AND">
+             rst.insdate > DATEADD(MM, -#searchDate#, GETDATE())
+         </isNotEqual>
+      </isNotNull>
+     )as forCnt
+
+
+
+
+  </select>
+
+  <!-- 점검PC 리스트 -->
+  <select id="DaoDeptPcCheck.group.dept.chkPc.list.mssql" parameterClass="coTtObjParams" resultClass="voSelfDiagnostic">
+   <![CDATA[
+      WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+     (
+      SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+      FROM leedb.dbo.TDEPT
+      WHERE DEPT_CD = #deptCd#
+      UNION ALL
+      SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+      FROM leedb.dbo.TDEPT T
+      INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+     )
+
+     select * from
+         (
+     select
+      ROW_NUMBER() OVER( ORDER BY a.MADE_CD, c.PRIR_SEQ desc ) AS ROWNUM,
+        a.gLevel,
+        a.MADE_CD as madeCd,
+        a.DEPT_NO as deptNo,
+        a.DEPT_CD as deptCd,
+        a.DEPT_NM as deptNm,
+        b.USER_ID as userId,
+        b.USER_NM as userNm,
+        b.USER_POSITION as userPosition,
+        c.CD_DTL_NM as cdDtlNm,
+        rst.insdate,
+        rst.resultCnt as chkResult,
+        rst.MacAddress macAddress,
+        rst.SERIAL as serialNumber,
+        rst.REAL_IPADDR as realIpAddr
+     from Category a
+      , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+      , leedb.dbo.TUSER b
+      inner join
+       (
+       select t1.SERIAL, t1.REAL_IPADDR, t1.EMPNO, t2.* ,ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+       from incops5.dbo.PC_BASIC t1
+       inner join (
+        SELECT t3.UserId, t3.MacAddress, t3.insdate, t2.resultCnt
+        FROM leedb.dbo.SELF_DIAGNOSTIC t3,
+        (
+         select sum(case when IsSafety <> '1' then 1 else 0 end) as resultCnt, SelfDiagnosticIdx from leedb.dbo.SELF_DIAGNOSTIC_RESULT
+         group by SelfDiagnosticIdx
+        ) t2
+        where t3.Idx = t2.SelfDiagnosticIdx
+       ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+      ) as rst on b.USER_ID = rst.EMPNO
+     WHERE a.DEPT_NO = b.DEPT_NO
+      and b.USER_POSITION = c.CD_DTL_NO
+      and (rst.TT_Sort = 1 or rst.MacAddress is null or rst.MacAddress = '')
+
+      )as forCnt
+      ]]>
+      <isNotEqual property="isExcel" compareValue="True">
+       <![CDATA[
+       WHERE
+           forCnt.rownum <= #toIndex#
+         AND
+           forCnt.rownum > #fromIndex#
+       ]]>
+       </isNotEqual>
+        OPTION (MAXRECURSION 0)
+  </select>
+
+  <!-- 점검PC 토탈 -->
+  <select id="DaoDeptPcCheck.group.dept.chkPc.page.mssql" parameterClass="coTtObjParams" resultClass="int">
+   <![CDATA[
+     WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+    (
+     SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+     FROM leedb.dbo.TDEPT
+     WHERE DEPT_CD = #deptCd#
+     UNION ALL
+     SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+     FROM leedb.dbo.TDEPT T
+     INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+    )
+
+    select COUNT(*) from
+        (
+    select
+    ROW_NUMBER() OVER( ORDER BY a.MADE_CD, c.PRIR_SEQ desc ) AS ROWNUM,
+       a.gLevel,
+       a.MADE_CD as madeCd,
+       a.DEPT_NO as deptNo,
+       a.DEPT_CD as deptCd,
+       a.DEPT_NM as deptNm,
+       b.USER_ID as userId,
+       b.USER_NM as userNm,
+       b.USER_POSITION as userPosition,
+       c.CD_DTL_NM as cdDtlNm,
+       rst.insdate,
+       rst.resultCnt,
+       rst.MacAddress,
+       rst.SERIAL as serial,
+       rst.REAL_IPADDR as realIpaddr
+    from Category a
+     , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+     , leedb.dbo.TUSER b
+     inner join
+      (
+      select t1.SERIAL, t1.REAL_IPADDR, t1.EMPNO, t2.* ,ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+      from incops5.dbo.PC_BASIC t1
+      inner join (
+       SELECT t3.UserId, t3.MacAddress, t3.insdate, t2.resultCnt
+       FROM leedb.dbo.SELF_DIAGNOSTIC t3,
+       (
+        select sum(case when IsSafety <> '1' then 1 else 0 end) as resultCnt, SelfDiagnosticIdx from leedb.dbo.SELF_DIAGNOSTIC_RESULT
+        group by SelfDiagnosticIdx
+       ) t2
+       where t3.Idx = t2.SelfDiagnosticIdx
+      ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+     ) as rst on b.USER_ID = rst.EMPNO
+    WHERE a.DEPT_NO = b.DEPT_NO
+     and b.USER_POSITION = c.CD_DTL_NO
+     and (rst.TT_Sort = 1 or rst.MacAddress is null or rst.MacAddress = '')
+     )as forCnt
+     ]]>
+  </select>
+
+
+  <!-- 취약항목 리스트-->
+  <select id="DaoDeptPcCheck.group.dept.danger.list.mssql" parameterClass="coTtObjParams" resultClass="voSelfDiagnostic">
+
+  <![CDATA[
+      WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+      (
+       SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+       FROM leedb.dbo.TDEPT
+       WHERE DEPT_CD = #deptCd#
+       UNION ALL
+       SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+       FROM leedb.dbo.TDEPT T
+       INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+      )
+      select * from
+      (
+        select
+          ROW_NUMBER() OVER( ORDER BY MADE_CD, USER_ID desc ) AS ROWNUM,
+          a.gLevel,
+          a.MADE_CD as madeCd,
+          a.DEPT_NO as deptNo,
+          a.DEPT_CD as deptCd,
+          a.DEPT_NM as deptNm,
+          b.USER_ID as userId,
+          b.USER_NM as userNm,
+          b.USER_POSITION userPosition,
+          c.CD_DTL_NM as cdDtlNm,
+          rst.insdate,
+          rst.resultCnt as chkResult,
+          rst.MacAddress as macAddress,
+          rst.SERIAL as serialNumber,
+          rst.REAL_IPADDR as realIpAddr,
+          rst.ChkResult as dangerList
+      from Category a
+       , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+       , leedb.dbo.TUSER b
+       inner join
+        (
+        select t1.SERIAL, t1.REAL_IPADDR, t1.EMPNO, t2.* ,ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+        from incops5.dbo.PC_BASIC t1
+        inner join (
+         SELECT t1.UserId, t1.MacAddress, t1.insdate, t2.resultCnt, t2.ChkResult
+         FROM leedb.dbo.SELF_DIAGNOSTIC t1,
+         (
+
+          select count(IsSafety) as resultCnt, rstCont.SelfDiagnosticIdx,
+           STUFF((
+            SELECT ',' + r1.ChkResult
+            FROM (
+             select rst.SelfDiagnosticIdx, item.ChkResult
+             from leedb.dbo.SELF_DIAGNOSTIC_RESULT rst
+              inner join leedb.dbo.SELF_DIAGNOSTIC_ITEM item on rst.ItemId = item.Id
+             where rst.IsSafety <> '1'
+            ) AS r1
+            WHERE rstCont.SelfDiagnosticIdx = r1.SelfDiagnosticIdx
+            FOR XML PATH('')
+           ), 1, 1, '') AS ChkResult
+          from (
+           select rst.SelfDiagnosticIdx, item.ChkResult, rst.IsSafety
+           from leedb.dbo.SELF_DIAGNOSTIC_RESULT rst
+            inner join leedb.dbo.SELF_DIAGNOSTIC_ITEM item on rst.ItemId = item.Id
+           where rst.IsSafety <> '1'
+          ) AS rstCont
+          group by SelfDiagnosticIdx
+         ) t2
+         where t1.Idx = t2.SelfDiagnosticIdx
+        ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+       ) as rst on b.USER_ID = rst.EMPNO
+      WHERE a.DEPT_NO = b.DEPT_NO
+       and b.USER_POSITION = c.CD_DTL_NO
+       and (rst.TT_Sort = 1 or rst.MacAddress is null or rst.MacAddress = '')
+
+      ) as ttt
+      ]]>
+      <isNotEqual property="isExcel" compareValue="True">
+       <![CDATA[
+       WHERE
+           ttt.rownum <= #toIndex#
+         AND
+           ttt.rownum > #fromIndex#
+       ]]>
+       </isNotEqual>
+      OPTION (MAXRECURSION 0)
+
+  </select>
+
+  <select id="DaoDeptPcCheck.group.dept.danger.page.mssql" parameterClass="coTtObjParams" resultClass="int">
+
+  <![CDATA[
+
+      WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel, MADE_CD) as
+      (
+       SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel,MADE_CD
+       FROM leedb.dbo.TDEPT
+       WHERE DEPT_CD = #deptCd#
+       UNION ALL
+       SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1), T.MADE_CD
+       FROM leedb.dbo.TDEPT T
+       INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+      )
+      select COUNT(*) from
+      (
+      select ROW_NUMBER() OVER( ORDER BY MADE_CD, USER_ID desc ) AS ROWNUM,a.gLevel, a.MADE_CD, a.DEPT_NO, a.DEPT_CD, a.DEPT_NM, b.USER_ID, b.USER_NM, b.USER_POSITION, c.CD_DTL_NM as USER_POSITION_NM,
+       rst.insdate, rst.resultCnt, rst.MacAddress, rst.SERIAL, rst.REAL_IPADDR, rst.ChkResult
+      from Category a
+       , (SELECT * FROM leedb.dbo.TCODEDTL WHERE CD_NO = '010') c
+       , leedb.dbo.TUSER b
+       inner join
+        (
+        select t1.SERIAL, t1.REAL_IPADDR, t1.EMPNO, t2.* ,ROW_NUMBER() over (PARTITION BY MacAddress Order By InsDate desc) as TT_Sort
+        from incops5.dbo.PC_BASIC t1
+        inner join (
+         SELECT t1.UserId, t1.MacAddress, t1.insdate, t2.resultCnt, t2.ChkResult
+         FROM leedb.dbo.SELF_DIAGNOSTIC t1,
+         (
+
+          select count(IsSafety) as resultCnt, rstCont.SelfDiagnosticIdx,
+           STUFF((
+            SELECT '|' + r1.ChkResult
+            FROM (
+             select rst.SelfDiagnosticIdx, item.ChkResult
+             from leedb.dbo.SELF_DIAGNOSTIC_RESULT rst
+              inner join leedb.dbo.SELF_DIAGNOSTIC_ITEM item on rst.ItemId = item.Id
+             where rst.IsSafety <> '1'
+            ) AS r1
+            WHERE rstCont.SelfDiagnosticIdx = r1.SelfDiagnosticIdx
+            FOR XML PATH('')
+           ), 1, 1, '') AS ChkResult
+          from (
+           select rst.SelfDiagnosticIdx, item.ChkResult, rst.IsSafety
+           from leedb.dbo.SELF_DIAGNOSTIC_RESULT rst
+            inner join leedb.dbo.SELF_DIAGNOSTIC_ITEM item on rst.ItemId = item.Id
+           where rst.IsSafety <> '1'
+          ) AS rstCont
+          group by SelfDiagnosticIdx
+         ) t2
+         where t1.Idx = t2.SelfDiagnosticIdx
+        ) as t2 on t1.MAC = t2.MacAddress and t1.EMPNO = t2.UserId
+       ) as rst on b.USER_ID = rst.EMPNO
+      WHERE a.DEPT_NO = b.DEPT_NO
+       and b.USER_POSITION = c.CD_DTL_NO
+       and (rst.TT_Sort = 1 or rst.MacAddress is null or rst.MacAddress = '')
+
+      ) as ttt
+
+      ]]>
+
+
+  </select>
+
+ <!-- 개인 자가진단 PC 토탈 -->
+ <select id="DaoDeptPcCheck.self.check.mypc.totcnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+    SELECT COUNT(*) AS CNT from (
+       SELECT
+           a.MacAddress
+       FROM
+           SELF_DIAGNOSTIC a
+       WHERE
+           a.UserId = #empNo#
+       AND
+           a.MacAddress = #mac#
+       <isNotNull property="searchDate">
+       <isNotEqual property="searchDate" compareValue="0" prepend="AND">
+          <![CDATA[
+              a.InsDate > DATEADD(MM, -#searchDate#, GETDATE())
+          ]]>
+       </isNotEqual>
+       </isNotNull>
+       GROUP BY
+           a.MacAddress
+       )TCNT
+
+ </select>
+
+ <!-- 2013.07.03 수정 -->
+ <select id="DaoDeptPcCheck.self.myDept.registerId.list.mssql" parameterClass="coTtObjParams" resultClass="voCoDept">
+
+     WITH Category(DEPT_NO, DEPT_CD, DEPT_NM, gLevel) as
+    (
+     SELECT DEPT_NO, DEPT_CD, DEPT_NM, 1 as gLevel
+     FROM leedb.dbo.TDEPT
+     WHERE DEPT_CD = #deptCd#
+     UNION ALL
+     SELECT T.DEPT_NO, T.DEPT_CD, T.DEPT_NM, (gLevel + 1)
+     FROM leedb.dbo.TDEPT T
+     INNER JOIN Category C ON C.DEPT_CD=T.HIGH_DEPT_CD
+    )
+    select
+       USER_ID as userId,
+       USER_NM as userNm,
+       USER_POSITION as userPosition,
+       DEPT_CD as deptCd
+    from Category a
+     ,leedb.dbo.TUSER b
+    WHERE a.DEPT_NO = b.DEPT_NO
+    OPTION (MAXRECURSION 0)
+ </select>
+
+ <!--
+  SELECT
+     USER_ID as userId,
+     USER_NM as userNm,
+     USER_POSITION as userPosition
+   FROM
+     leedb.dbo.TUSER
+   WHERE
+     DEPT_NO = #deptNo#
+
+  -->
+
+ <select id="DaoDeptPcCheck.self.myDept.regist.pcCnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+   SELECT
+     COUNT(*)
+   FROM
+     leedb.dbo.SELF_DIAGNOSTIC a, leedb.dbo.TAPPROBJ_PC b
+   WHERE
+     a.SerialNumber = b.SERIAL
+   AND
+     b.USER_ID = #userId#
+ </select>
+
+ <select id="DaoDeptPcCheck.self.diagnostic.idx.list.mssql" parameterClass="coTtObjParams" resultClass="voPcCheck">
+    SELECT TOP 1
+      Idx as idx
+      ,AllSafety as allSafety
+    FROM
+      SELF_DIAGNOSTIC
+    WHERE
+      MacAddress = #macAddress#
+    AND
+      UserId = #userId#
+    <isNotNull property="searchDate">
+     <isNotEqual property="searchDate" compareValue="0" prepend="AND">
+        <![CDATA[
+            InsDate > DATEADD(MM, -#searchDate#, GETDATE())
+        ]]>
+     </isNotEqual>
+    </isNotNull>
+    ORDER BY Idx DESC
+ </select>
+
+ <select id="DaoDeptPcCheck.self.isSafety.totCnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+    SELECT
+      COUNT(*)
+    FROM
+      SELF_DIAGNOSTIC_RESULT
+    WHERE
+      SelfDiagnosticIdx = #selfDiagnosticIdx#
+    AND
+      IsSafety = #isSafety#
+ </select>
+
+</sqlMap>

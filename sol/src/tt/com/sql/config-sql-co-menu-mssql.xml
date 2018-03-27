@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoUserGrpMenu" type="tt.com.bean.VoCoUserGrpMenu" />
+ <typeAlias alias="voCoMenu" type="tt.com.bean.VoCoMenu" />
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+
+ <!-- ############################################################################################## -->
+ <!-- 메뉴 -->
+ <!-- ############################################################################################## -->
+ <!-- 모든메뉴 -->
+ <select id="DaoCoMenu.total.menu.list1.mssql" parameterClass="coTtStrParams" resultClass="voCoUserGrpMenu">
+  SELECT
+    MENU_ID,
+    MENU_GRP_NO,
+    MENU_SEQ_NO,
+    MENU_GRP_NM,
+    MENU_EXP,
+    MENU_ACTION,
+    MENU_CL
+  FROM
+    TMENU
+  WHERE
+    MENU_CL >= #GRP_CL#
+  ORDER BY
+    MENU_GRP_NO,
+    MENU_SEQ_NO
+ </select>
+
+</sqlMap>

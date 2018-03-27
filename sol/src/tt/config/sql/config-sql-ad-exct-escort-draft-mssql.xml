@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- ############################################################################################## -->
+ <!--  -->
+ <!-- ############################################################################################## -->
+
+<!-- 그룹등록용 MAX 부서번호취득 -->
+ <select id="DaoExctEscortDraft.getLatestApprId.mssql" resultClass="String">
+ SELECT
+  ISNULL(Max(APPR_ID),1) AS apprId
+ FROM
+  TAPPROVER
+ </select>
+<!-- Escort예외정책 결재자 입력 -->
+<insert id="DaoExctEscortDraft.insertApprover.mssql" parameterClass="coTtObjParams">
+  INSERT INTO
+   TAPPROVER(
+    APPR_ID, USER_ID, UPD_DM, TURN_NO, STATUS, PERMIT_GUBUN
+  )VALUES(
+    #apprId#,#userId#,#UPD_DM#,#turnNo#,#status#,#permitGubun#
+  )
+</insert>
+<!-- Escort예외정책 대상PC 입력 -->
+<insert id="DaoExctEscortDraft.insertApprObjPc.mssql" parameterClass="coTtObjParams">
+  INSERT INTO
+   TAPPROBJ_PC(
+    APPR_ID, USER_NM, SERIAL, IP_ADDR, REG_DM,USER_ID
+  )VALUES(
+   #apprId#,#userNm#,#serial#,#ipAddr#,#UPD_DM#,#appId#
+  )
+</insert>
+<!-- Escort예외정책 결재정보 입력 -->
+<insert id="DaoExctEscortDraft.insertApprInfo.mssql" parameterClass="coTtObjParams">
+  INSERT INTO
+   TAPPR_INFO(
+    APPR_ID, EXCT_NMS, EXCT_APP_ID, APPR_DM, START_DM, END_DM, REASON, ADD_PROOF_NM, APPROBJ_USER, APPROBJ_DEPT, DRAFTER, STATUS, USER_ID, ADD_PROOF_URL,APP_ID,ATTACH_GUBUN, PURPOSE 
+  )VALUES(
+   #apprId#, #exctNms#, #exctAppId#, #UPD_DM#, #startDm#, #endDm#, #reason#, #addProofNm#, #apprObjUser#, #apprObjDept#, #drafter#, #status#, #apprUserId#, #addProofUrl#,#appId#,#attachAllowGubun#, #purpose# 
+  )
+</insert>
+
+<!-- Escort예외정책 결재상세 입력 -->
+<insert id="DaoExctEscortDraft.insertApprDetail.mssql" parameterClass="coTtObjParams">
+  INSERT INTO
+   TAPPR_DETAIL(
+    APPR_ID, EXCT_NM, EXCT_APP_ID, PRO_GUBUN, REG_DM, VALUE1, VALUE2, ATTACH_GUBUN,RuleGUID,RuleName,TimeGUID,TimeName,DeptGUID,EmpGUID
+  )VALUES(
+   #apprId#, #exctNm#, #exctAppId#, #proGubun#, #UPD_DM#, #value1#, #value2#, #attachGubun#,#ruleGUID#,#ruleName#,#timeGUID#,#timeName#,#deptGUID#,#empGUID#
+  )
+</insert>
+
+
+</sqlMap>

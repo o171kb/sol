@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd">
+ <bean id="dataSourceSpied" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+  <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+  <property name="url" value="jdbc:sqlserver://localhost:1433;DatabaseName=leedb;" />
+  <property name="username" value="soladmin" />
+  <property name="password" value="qwer1234" />
+ </bean>
+<!-- 
+ <bean id="dataSourceSpied" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+  <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+  <property name="url" value="jdbc:mysql://localhost:3306/journal?charcterEncoding=euc_kr" />
+  <property name="username" value="springboot" />
+  <property name="password" value="springboot" />
+ </bean>
+ --> 
+ 
+ 
+ <bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+  <constructor-arg ref="dataSourceSpied" />
+ </bean>
+
+
+ <bean id="dataSourceSpied_incops5" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+  <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+  <property name="url" value="jdbc:sqlserver://dev.think-tree.com:15614;DatabaseName=incops5;" />
+  <property name="username" value="sa" />
+  <property name="password" value="qwer1234" />
+ </bean>
+ <bean id="dataSource_incops5" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+  <constructor-arg ref="dataSourceSpied_incops5" />
+ </bean>
+
+  <bean id="dataSourceSpied_secuPrint" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+  <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+  <property name="url" value="jdbc:sqlserver://dev.think-tree.com:15614;DatabaseName=SecuPrint;" />
+  <property name="username" value="sa" />
+  <property name="password" value="qwer1234" />
+ </bean>
+ <bean id="dataSource_secuPrint" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+  <constructor-arg ref="dataSourceSpied_secuPrint" />
+ </bean>
+
+
+ <bean id="dataSourceSpied_wkPolicy" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+  <property name="driverClassName" value="com.microsoft.sqlserver.jdbc.SQLServerDriver" />
+  <property name="url" value="jdbc:sqlserver://dev.think-tree.com:15614;DatabaseName=wk_policy;" />
+  <property name="username" value="sa" />
+  <property name="password" value="qwer1234" />
+ </bean>
+ <bean id="dataSource_wkPolicy" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+  <constructor-arg ref="dataSourceSpied_wkPolicy" />
+ </bean>
+
+
+</beans>

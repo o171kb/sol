@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoDept" type="tt.com.bean.VoCoDept" />
+ <typeAlias alias="voBoard" type="tt.bean.VoBoard" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- CUSTOMER ALL SELECT 절 -->
+ <sql id="board.all.select.mssql">
+  SELECT
+   BOARD_NO        AS boardNo,
+   BOARD_TITLE     AS boardTitle,
+   CONTENTS        AS contents,
+   BOARD_TP        AS boardTp,
+   FILE_NM         AS fileNm,
+   FILE_URL        AS fileUrl,
+   REG_DM          AS regDm,
+   UPD_DM          AS updDm,
+   USER_YN         AS userYn,
+   USER_ID         AS userId
+  FROM
+   TBOARD
+ </sql>
+
+ <!-- PAGE SELECT START 절 -->
+ <sql id="board.page.list.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="board.page.list.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="board.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="board.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+
+ <!-- ############################################################################################## -->
+ <!-- 게시관리 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 게시관리 페이지 SELECT 절 -->
+ <sql id="DaoBoardSearch.page.list.body.mssql">
+  SELECT
+   BOARD_NO        AS boardNo,
+   BOARD_TITLE     AS boardTitle,
+   CONTENTS        AS contents,
+   BOARD_TP        AS boardTp,
+   FILE_NM         AS fileNm,
+   FILE_URL        AS fileUrl,
+   REG_DM          AS regDm,
+   UPD_DM          AS updDm,
+   USER_YN         AS userYn,
+   USER_ID         AS userId
+   <!-- 
+   ,
+   ROW_NUMBER() OVER( ORDER BY CONVERT(integer,BOARD_NO) DESC) AS ROWNUM
+    -->
+  FROM
+   TBOARD
+  WHERE
+   USER_YN = '1'
+  <isNotEmpty prepend="AND" property="searchBoardTp">
+   BOARD_TP = #searchBoardTp#
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchTitle">
+   BOARD_TITLE LIKE '%' + #searchTitle# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchUserId">
+   USER_ID LIKE '%' + #searchUserId# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchStartDm">
+   <isNotEmpty property="searchEndDm">
+     REG_DM BETWEEN #searchStartDm# AND #searchEndDm#
+   </isNotEmpty>
+  </isNotEmpty>
+ </sql>
+
+
+ <select id="DaoBoardSearch.page.list.mssql" parameterClass="coTtObjParams" resultClass="voBoard">
+  <include refid="board.page.list.start.mssql"/>
+  <include refid="DaoBoardSearch.page.list.body.mssql"/>
+  <include refid="board.page.list.end.mssql"/>
+ </select>
+
+ <select id="DaoBoardSearch.page.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  <include refid="board.page.cnt.start.mssql"/>
+  <include refid="DaoBoardSearch.page.list.body.mssql"/>
+  <include refid="board.page.cnt.end.mssql"/>
+ </select>
+
+ <select id="DaoBoardSearch.page.view.mssql" parameterClass="coTtObjParams" resultClass="voBoard">
+  <include refid="board.all.select.mssql"/>
+  WHERE BOARD_NO = #boardNo#
+  <isNotEmpty prepend="AND" property="boardTp">
+     BOARD_TP = #boardTp#
+  </isNotEmpty>
+  AND
+     USER_YN = '1'
+ </select>
+
+ <!-- 수정 -->
+ <update id="DaoBoardSearch.page.update.mssql" parameterClass="coTtObjParams">
+  UPDATE
+      TBOARD
+  SET
+      BOARD_TITLE  = #boardTitle#,
+      CONTENTS     = #contents#,
+      BOARD_TP     = #boardTp#,
+      <isEqual property="fileDelYn" compareValue="Y">
+        FILE_NM      = #fileNm#,
+      </isEqual>
+      <isEqual property="fileDelYn" compareValue="Y">
+        FILE_URL     = #fileUrl#,
+      </isEqual>
+      <isEqual property="fileDelYn" compareValue="N">
+       <isNotEmpty property="fileNm">
+        FILE_NM      = #fileNm#,
+       </isNotEmpty>
+      </isEqual>
+      <isEqual property="fileDelYn" compareValue="N">
+       <isNotEmpty property="fileUrl">
+        FILE_URL     = #fileUrl#,
+       </isNotEmpty>
+      </isEqual>
+      UPD_DM       = #updDm#,
+      USER_ID      = #userId#
+  WHERE
+      BOARD_NO = #boardNo#
+ </update>
+
+ <!-- 글 삭제  -->
+ <update id="DaoBoardSerch.board.delete.mssql" parameterClass="coTtObjParams">
+  UPDATE
+       TBOARD
+  SET
+       USER_YN =  '0'
+  WHERE
+       BOARD_NO = #boardNo#
+ </update>
+
+ <!-- 등록 -->
+ <insert id="DaoBoardSearch.page.insert.mssql" parameterClass="coTtObjParams">
+  INSERT
+   INTO
+    TBOARD
+    ( BOARD_NO,
+      BOARD_TITLE,
+      CONTENTS,
+      BOARD_TP,
+      FILE_NM,
+      FILE_URL,
+      REG_DM,
+      USER_YN,
+      USER_ID )
+    VALUES
+    ( #boardNo#,
+      #boardTitle#,
+      #contents#,
+      #boardTp#,
+      #fileNm#,
+      #fileUrl#,
+      #regDm#,
+      '1',
+      #userId# )
+ </insert>
+
+ <!-- MAX BoardNo 취득 -->
+ <select id="DaoBoardSearch.board.max.boardno.mssql" resultClass="int">
+  SELECT
+   isNull(MAX(CONVERT(integer,BOARD_NO)),'1') AS boardNo
+  FROM
+    TBOARD
+ </select>
+
+</sqlMap>

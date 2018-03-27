@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.exct.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- 예외|예외용어문구수정 -->
+ <definition name="admin.exct.string.modify.list.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|예외용어문구수정" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adExctStringModifyList.jsp" />
+ </definition>
+
+ <!-- 예외|예외용어문구수정상세 -->
+ <definition name="admin.exct.string.modify.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|예외용어문구수정" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adExctStringModify.jsp" />
+ </definition>
+ 
+ <!-- 예외|예외용어문구 입력 -->
+ <definition name="admin.exct.string.insert.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|예외용어문구입력" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adExctStringInsert.jsp" />
+ </definition>
+
+ <!-- 예외|예외신청문구수정 -->
+ <definition name="admin.exct.draft.modify.list.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|예외신청문구수정" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adExctDraftModifyList.jsp" />
+ </definition>
+
+ <!-- 예외|예외신청문구수정 상세-->
+ <definition name="admin.exct.draft.modify.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|예외신청문구수정 상세" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adExctDraftModify.jsp" />
+ </definition>
+
+ <!-- 예외|Escort정책예외신청동의 -->
+ <definition name="admin.exct.escort.draft.agree.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|Escort정책예외신청동의" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adEscortDraftAgree.jsp" />
+ </definition>
+
+ <!-- 예외|Escort정책예외신청 -->
+ <definition name="admin.exct.escort.draft.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|Escort정책예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adEscortDraft.jsp" />
+ </definition>
+
+ <!-- 예외|첨부통제예외신청동의 -->
+ <definition name="admin.exct.attach.draft.agree.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|첨부통제예외신청동의" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adAttachDraftAgree.jsp" />
+ </definition>
+
+ <!-- 예외|첨부통제예외신청 -->
+ <definition name="admin.exct.attach.draft.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|첨부통제예외신청동의" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adAttachDraft.jsp" />
+ </definition>
+
+ <!-- 예외|출력보안예외신청동의 -->
+ <definition name="admin.exct.output.draft.agree.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|출력보안예외신청동의" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adOutputDraftAgree.jsp" />
+ </definition>
+
+ <!-- 예외|출력보안예외신청 -->
+ <definition name="admin.exct.output.draft.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|출력보안예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adOutputDraft.jsp" />
+ </definition>
+
+ <!-- 예외|웹메일예외신청동의 -->
+ <definition name="admin.exct.mail.draft.agree.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|웹메일예외신청동의" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adMailDraftAgree.jsp" />
+ </definition>
+
+ <!-- 예외|웹메일예외신청 -->
+ <definition name="admin.exct.mail.draft.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|웹메일예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adMailDraft.jsp" />
+ </definition>
+
+ <!-- 예외|메신저예외신청동의 -->
+ <definition name="admin.exct.msg.draft.agree.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|메신저예외신청동의" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adMsgDraftAgree.jsp" />
+ </definition>
+
+ <!-- 예외|메신저예외신청 -->
+ <definition name="admin.exct.msg.draft.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|메신저예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adMsgDraft.jsp" />
+ </definition>
+
+ <!-- 예외|사이트예외신청동의 -->
+ <definition name="admin.exct.site.draft.agree.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|사이트예외신청동의" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adSiteDraftAgree.jsp" />
+ </definition>
+
+ <!-- 예외|사이트예외신청동의 -->
+ <definition name="admin.exct.site.draft.tiles" extends="admin.exct.template.tiles">
+  <put-attribute name="title" value="예외|사이트예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/exct/adSiteDraft.jsp" />
+ </definition>
+ 
+ <!-- 예외|API -->
+  <definition name="admin.exct.api.tiles" template="/WEB-INF/jsp/module/admin/exct/adExctApiRegist.jsp"/>
+
+</tiles-definitions>

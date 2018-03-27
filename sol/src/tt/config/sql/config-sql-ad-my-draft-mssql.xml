@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voExct" type="tt.bean.VoExct" />
+ <typeAlias alias="voCoUser" type="tt.com.bean.VoCoUser" />
+ <typeAlias alias="voApprInfo" type="tt.bean.VoApprInfo" />
+ <typeAlias alias="voPcBasic" type="tt.bean.VoPcBasic" />
+ <typeAlias alias="voExctObjPc" type="tt.bean.VoExctObjPc"/>
+ <typeAlias alias="voApprDetail" type="tt.bean.VoApprDetail"/>
+
+ <!-- PAGE SELECT START 절 -->
+ <sql id="DaoMyDraft.draft.page.list.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="DaoMyDraft.draft.page.list.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- 나의신청현황 -->
+ <sql id="DaoMyDraft.draft.search.page.list.body.mssql">
+   SELECT
+       INFO.APPR_ID AS apprId,
+       INFO.EXCT_NMS AS exctNms,
+       INFO.EXCT_APP_ID AS exctAppId,
+       INFO.PURPOSE AS purpose,
+       SUBSTRING( INFO.APPR_DM,1,16 ) AS apprDm,
+       SUBSTRING( INFO.START_DM,1,4 ) + '-' + SUBSTRING( INFO.START_DM,5,2 ) + '-' + SUBSTRING( INFO.START_DM,7,2 ) + ' ' + SUBSTRING( INFO.START_DM,9,2 ) + ':' + SUBSTRING( INFO.START_DM,11,2 ) AS startDm,
+       SUBSTRING( INFO.END_DM,1,4 ) + '-' + SUBSTRING( INFO.END_DM,5,2 ) + '-' + SUBSTRING( INFO.END_DM,7,2 ) + ' ' + SUBSTRING( INFO.END_DM,9,2 ) + ':' + SUBSTRING( INFO.END_DM,11,2 ) AS endDm,
+       INFO.REASON AS reason,
+       INFO.ADD_PROOF_NM AS addProofNm,
+       INFO.ADD_PROOF_URL AS addProofUrl,
+       INFO.APP_ID AS appId,
+       INFO.APPROBJ_USER AS approbjUser,
+       INFO.APPROBJ_ID AS approbjId,
+       INFO.STATUS AS status,
+       INFO.DRAFTER AS drafter,
+       INFO.USER_ID AS userId,
+       USR.DEPT_NO AS deptNo,
+       DEPT.DEPT_NM AS deptNm,
+       DEPT.DEPT_CD as deptCd,
+       DTL.CD_DTL_NM AS cdDtlNm,
+       TERMS.EXCT_APP_NM AS exctAppNm,
+       (SELECT count(*) FROM TAPPR_INFO INFO
+		 LEFT JOIN TUSER USR
+		   ON INFO.APP_ID = USR.USER_ID
+		 LEFT JOIN TCODEDTL DTL
+		   ON DTL.CD_NO = '004'
+		   AND INFO.STATUS = CD_DTL_NO
+		 LEFT JOIN TDEPT DEPT
+			ON USR.DEPT_NO = DEPT.DEPT_NO
+	    WHERE 1=1
+        <isEqual prepend="AND" property="tabDiv" compareValue="myReq">
+			INFO.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="deptReq">
+			DEPT.DEPT_NO = USR.DEPT_NO
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="allReq">
+			INFO.APPR_ID is not null
+		</isEqual>
+		AND DTL.CD_DTL_NO = '01'
+	   )as reqCount,
+	   (SELECT count(*) FROM TAPPR_INFO INFO
+		 LEFT JOIN TUSER USR
+		   ON INFO.APP_ID = USR.USER_ID
+		 LEFT JOIN TCODEDTL DTL
+		   ON DTL.CD_NO = '004'
+		   AND INFO.STATUS = CD_DTL_NO
+		 LEFT JOIN TDEPT DEPT
+			ON USR.DEPT_NO = DEPT.DEPT_NO
+	    WHERE 1=1
+        <isEqual prepend="AND" property="tabDiv" compareValue="myReq">
+			INFO.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="deptReq">
+			DEPT.DEPT_NO = USR.DEPT_NO
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="allReq">
+			INFO.APPR_ID is not null
+		</isEqual>
+		AND DTL.CD_DTL_NO = '02'
+	   )as reqDoCount,
+       ROW_NUMBER() OVER( ORDER BY INFO.APPR_ID DESC) AS ROWNUM
+  FROM TAPPR_INFO INFO
+     LEFT JOIN TUSER USR
+       ON INFO.APP_ID = USR.USER_ID
+     LEFT JOIN TCODEDTL DTL
+       ON DTL.CD_NO = '004'
+      AND INFO.STATUS = CD_DTL_NO
+     LEFT JOIN TDEPT DEPT
+       ON USR.DEPT_NO = DEPT.DEPT_NO
+     LEFT JOIN TEXCTAPPTERMS TERMS
+       ON INFO.EXCT_APP_ID = TERMS.EXCT_APP_ID
+  WHERE 1=1
+    <isEqual prepend="AND" property="tabDiv" compareValue="myReq">
+		INFO.USER_ID = #userId#
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv" compareValue="deptReq">
+		DEPT.DEPT_NO = USR.DEPT_NO
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv" compareValue="allReq">
+		INFO.APPR_ID is not null 
+	</isEqual>
+	
+	<isNotEmpty prepend="AND" property="searchStartDm">
+	<![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) >= #searchStartDm# ]]>
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchEndDm">
+	<![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) <= #searchEndDm# ]]>
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchStatus">
+	 INFO.STATUS = #searchStatus#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchGubun">
+	 INFO.EXCT_APP_ID = #searchGubun#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchUserNm">
+	 CHARINDEX(#searchUserNm#, INFO.APPROBJ_USER) > 0
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchDeptNo">
+	 USR.DEPT_NO =#searchDeptNo#
+	</isNotEmpty>
+	 </sql>
+	 
+	<sql id="DaoMyDraft.draft.search.page.list.body2.mssql">
+   SELECT
+       INFO.APPR_ID AS apprId,
+       INFO.EXCT_NMS AS exctNms,
+       INFO.EXCT_APP_ID AS exctAppId,
+       INFO.PURPOSE AS purpose,
+       SUBSTRING( INFO.APPR_DM,1,16 ) AS apprDm,
+       SUBSTRING( INFO.START_DM,1,4 ) + '-' + SUBSTRING( INFO.START_DM,5,2 ) + '-' + SUBSTRING( INFO.START_DM,7,2 ) + ' ' + SUBSTRING( INFO.START_DM,9,2 ) + ':' + SUBSTRING( INFO.START_DM,11,2 ) AS startDm,
+       SUBSTRING( INFO.END_DM,1,4 ) + '-' + SUBSTRING( INFO.END_DM,5,2 ) + '-' + SUBSTRING( INFO.END_DM,7,2 ) + ' ' + SUBSTRING( INFO.END_DM,9,2 ) + ':' + SUBSTRING( INFO.END_DM,11,2 ) AS endDm,
+       INFO.REASON AS reason,
+       INFO.ADD_PROOF_NM AS addProofNm,
+       INFO.ADD_PROOF_URL AS addProofUrl,
+       INFO.APP_ID AS appId,
+       INFO.APPROBJ_USER AS approbjUser,
+       INFO.APPROBJ_ID AS approbjId,
+       INFO.STATUS AS status,
+       INFO.DRAFTER AS drafter,
+       INFO.USER_ID AS userId,
+       USR.DEPT_NO AS deptNo,
+       DEPT.DEPT_NM AS deptNm,
+       DEPT.DEPT_CD as deptCd,
+       DTL.CD_DTL_NM AS cdDtlNm,
+       TERMS.EXCT_APP_NM AS exctAppNm,
+       (SELECT count(*) FROM TAPPR_INFO INFO
+		 LEFT JOIN TUSER USR
+		   ON INFO.APP_ID = USR.USER_ID
+		 LEFT JOIN TCODEDTL DTL
+		   ON DTL.CD_NO = '004'
+		   AND INFO.STATUS = CD_DTL_NO
+		 LEFT JOIN TDEPT DEPT
+			ON USR.DEPT_NO = DEPT.DEPT_NO
+	    WHERE 1=1
+        <isEqual prepend="AND" property="tabDiv" compareValue="myReq">
+			INFO.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="deptReq">
+			<iterate property="deptList" open="(" close=")" conjunction="OR">
+			  DEPT.DEPT_CD = #deptList[].deptCd#
+			</iterate>
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="allReq">
+			INFO.APPR_ID is not null
+		</isEqual>
+		AND DTL.CD_DTL_NO = '01'
+	   )as reqCount,
+	   (SELECT count(*) FROM TAPPR_INFO INFO
+		 LEFT JOIN TUSER USR
+		   ON INFO.APP_ID = USR.USER_ID
+		 LEFT JOIN TCODEDTL DTL
+		   ON DTL.CD_NO = '004'
+		   AND INFO.STATUS = CD_DTL_NO
+		 LEFT JOIN TDEPT DEPT
+			ON USR.DEPT_NO = DEPT.DEPT_NO
+	    WHERE 1=1
+        <isEqual prepend="AND" property="tabDiv" compareValue="myReq">
+			INFO.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="deptReq">
+			<iterate property="deptList" open="(" close=")" conjunction="OR">
+			  DEPT.DEPT_CD = #deptList[].deptCd#
+			</iterate>
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv" compareValue="allReq">
+			INFO.APPR_ID is not null
+		</isEqual>
+		AND DTL.CD_DTL_NO = '02'
+	   )as reqDoCount,
+       ROW_NUMBER() OVER( ORDER BY INFO.APPR_ID DESC) AS ROWNUM
+  FROM TAPPR_INFO INFO
+     LEFT JOIN TUSER USR
+       ON INFO.APP_ID = USR.USER_ID
+     LEFT JOIN TCODEDTL DTL
+       ON DTL.CD_NO = '004'
+      AND INFO.STATUS = CD_DTL_NO
+     LEFT JOIN TDEPT DEPT
+       ON USR.DEPT_NO = DEPT.DEPT_NO
+     LEFT JOIN TEXCTAPPTERMS TERMS
+       ON INFO.EXCT_APP_ID = TERMS.EXCT_APP_ID
+  WHERE 1=1
+    <isEqual prepend="AND" property="tabDiv" compareValue="myReq">
+		INFO.USER_ID = #userId#
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv" compareValue="deptReq">
+		<iterate property="deptList" open="(" close=")" conjunction="OR">
+		  DEPT.DEPT_CD = #deptList[].deptCd#
+		</iterate>
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv" compareValue="allReq">
+		INFO.APPR_ID is not null 
+	</isEqual>
+	
+	<isNotEmpty prepend="AND" property="searchStartDm">
+	<![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) >= #searchStartDm# ]]>
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchEndDm">
+	<![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) <= #searchEndDm# ]]>
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchStatus">
+	 INFO.STATUS = #searchStatus#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchGubun">
+	 INFO.EXCT_APP_ID = #searchGubun#
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchUserNm">
+	 CHARINDEX(#searchUserNm#, INFO.APPROBJ_USER) > 0
+	</isNotEmpty>
+	<isNotEmpty prepend="AND" property="searchDeptNo">
+	 USR.DEPT_NO =#searchDeptNo#
+	</isNotEmpty>
+	
+	 </sql>
+
+
+ <sql id="DaoMyDraft.draft.detail.body.mssql">
+   SELECT
+       INFO.APPR_ID AS apprId,
+       INFO.EXCT_NMS AS exctNms,
+       INFO.EXCT_APP_ID AS exctAppId,
+       INFO.PURPOSE AS purpose,
+       SUBSTRING( INFO.APPR_DM,1,10 ) AS apprDm,
+       SUBSTRING( INFO.START_DM,1,4 ) + '-' + SUBSTRING( INFO.START_DM,5,2 ) + '-' + SUBSTRING( INFO.START_DM,7,2 ) + ' ' + SUBSTRING( INFO.START_DM,9,2 ) + ':' + SUBSTRING( INFO.START_DM,11,2 ) AS startDm,
+       SUBSTRING( INFO.END_DM,1,4 ) + '-' + SUBSTRING( INFO.END_DM,5,2 ) + '-' + SUBSTRING( INFO.END_DM,7,2 ) + ' ' + SUBSTRING( INFO.END_DM,9,2 ) + ':' + SUBSTRING( INFO.END_DM,11,2 ) AS endDm,
+       INFO.REASON AS reason,
+       INFO.ADD_PROOF_NM AS addProofNm,
+       INFO.ADD_PROOF_URL AS addProofUrl,
+       INFO.APPROBJ_USER AS approbjUser,
+       INFO.APPROBJ_ID AS approbjId,
+       INFO.STATUS AS status,
+       INFO.DRAFTER AS drafter,
+       INFO.USER_ID AS userId,
+       INFO.ATTACH_GUBUN AS allowGubun,
+       USR.DEPT_NO AS deptNo,
+       USR.USER_TEL AS userTel,
+       USR.USER_POSITION AS userPosition,
+       USR.USER_NM AS userNm,
+       DEPT.DEPT_NM AS deptNm,
+       DTL.CD_DTL_NM AS cdDtlNm,
+       TERMS.EXCT_APP_NM AS exctAppNm
+  FROM TAPPR_INFO INFO
+     LEFT JOIN TUSER USR
+       ON INFO.APP_ID = USR.USER_ID
+     LEFT JOIN TCODEDTL DTL
+       ON DTL.CD_NO = '004'
+       AND INFO.STATUS = CD_DTL_NO
+     LEFT JOIN TDEPT DEPT
+       ON USR.DEPT_NO = DEPT.DEPT_NO
+     LEFT JOIN TEXCTAPPTERMS TERMS
+       ON INFO.EXCT_APP_ID = TERMS.EXCT_APP_ID
+  WHERE
+       INFO.APPR_ID = #apprId#
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="draft.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="draft.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+ <!-- 나의신청현황 -->
+ <select id="DaoMyDraft.draft.search.page.list.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+    <include refid="DaoMyDraft.draft.page.list.start.mssql"/>
+    <include refid="DaoMyDraft.draft.search.page.list.body.mssql"/>
+    <include refid="DaoMyDraft.draft.page.list.end.mssql"/>
+ </select>
+
+ <select id="DaoMyDraft.draft.search.page.list2.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+    <include refid="DaoMyDraft.draft.page.list.start.mssql"/>
+    <include refid="DaoMyDraft.draft.search.page.list.body2.mssql"/>
+    <include refid="DaoMyDraft.draft.page.list.end.mssql"/>
+ </select>
+ 
+ <select id="DaoMyDraft.draft.search.page.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+   <include refid="draft.page.cnt.start.mssql"/>
+   <include refid="DaoMyDraft.draft.search.page.list.body.mssql"/>
+   <include refid="draft.page.cnt.end.mssql"/>
+ </select>
+ 
+ <select id="DaoMyDraft.draft.search.page.cnt2.mssql" parameterClass="coTtObjParams" resultClass="int">
+   <include refid="draft.page.cnt.start.mssql"/>
+   <include refid="DaoMyDraft.draft.search.page.list.body2.mssql"/>
+   <include refid="draft.page.cnt.end.mssql"/>
+ </select>
+
+ <select id="DaoMyDraft.draft.detail.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+    <include refid="DaoMyDraft.draft.detail.body.mssql"/>
+ </select>
+
+ <!-- 결재자 정보 -->
+ <select id="DaoMyDraft.draft.approver.list.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+    SELECT APR.APPR_ID AS apprId,
+          APR.USER_ID AS userId,
+          APR.TURN_NO AS turnNo,
+          APR.STATUS AS status,
+          APR.PERMIT_GUBUN AS permitGubun,
+          APR.UPD_DM AS updDm,
+          APR.PERMIT_GUBUN AS permitGubun,
+          APR.RESULT_REASON AS resultReason,
+          USR.USER_NM AS userNm,
+          USR.USER_POSITION AS userPosition,
+          DEP.DEPT_NM AS deptNm
+    FROM TAPPROVER APR
+    LEFT JOIN TUSER USR
+       ON  USR.USER_ID = APR.USER_ID
+    LEFT JOIN TDEPT DEP
+       ON  DEP.DEPT_NO = USR.DEPT_NO
+    WHERE APR.APPR_ID = #apprId#
+ </select>
+
+ <!-- 예외대상 PC -->
+ <select id="DaoMyDraft.draft.pc.list.mssql" parameterClass="coTtObjParams" resultClass="voExctObjPc">
+    SELECT PC.APPR_ID AS apprId,
+           PC.USER_NM AS userNm,
+           PC.SERIAL AS serial,
+           PC.IP_ADDR AS ipAddr,
+           PC.REG_DM AS regDm,
+           isnull(USR.USER_ID, PC.USER_ID) AS userId, 
+           USR.USER_MOBILE AS userMobile,
+           DEP.DEPT_NM AS deptNm
+    FROM TAPPROBJ_PC PC
+    LEFT JOIN TUSER USR
+        ON USR.USER_ID = PC.USER_ID
+    LEFT JOIN TDEPT DEP
+        ON DEP.DEPT_NO = USR.DEPT_NO
+    WHERE PC.APPR_ID = #apprId#
+ </select>
+
+ <select id="DaoMyDraft.draft.term.list.mssql" parameterClass="coTtObjParams" resultClass="voApprDetail">
+   SELECT
+       DTL.APPR_ID AS apprId,
+       DTL.EXCT_NM AS exctNm,
+       DTL.EXCT_APP_ID AS exctAppId,
+       DTL.REG_DM AS regDm,
+       DTL.ATTACH_GUBUN AS attachGubun,
+       DTL.RuleGUID AS ruleGUID,
+       DTL.RuleName AS ruleName,
+       DTL.TimeGUID AS timeGUID,
+       DTL.TimeName AS timeName,
+       DTL.DeptGUID AS deptGUID,
+       DTL.EmpGUID AS empGUID,
+       EXCT.REAL_EXCT_NM AS realExctNm,
+       EXCT.EXCT_DTL AS exctDtl,
+       EXCT.EXCT_NM
+   FROM TAPPR_DETAIL DTL
+   LEFT JOIN TEXCT EXCT
+     ON DTL.EXCT_APP_ID = EXCT.EXCT_ID
+   WHERE DTL.APPR_ID = #apprId#
+
+ </select>
+ 
+ <select id="DaoMyDraft.draft.dept.list.mssql" parameterClass="voApprInfo" resultClass="voApprInfo">
+	SELECT 
+		DEPT_CD as deptCd,
+		HIGH_DEPT_CD as highDeptCd,
+		DEPT_NM as deptNm
+    FROM TDEPT
+    
+    WHERE HIGH_DEPT_CD = #highDeptCd#
+ </select>
+ 
+ <!-- 하위 부서 조회 -->
+  <select id="DaoMyDraft.draft.lowDept.list.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+  SELECT DEPT_CD as deptCd FROM TDEPT
+  WHERE HIGH_DEPT_CD = #deptCd#
+ </select>
+ 
+  <!-- 하위 부서 조회 -->
+  <select id="DaoMyDraft.draft.lowOrDept.list.mssql" parameterClass="java.util.Map" resultClass="voApprInfo">
+  SELECT DEPT_CD as deptCd FROM TDEPT
+  WHERE 1=1
+  <iterate prepend="AND" property="deptList" open="(" close=")" conjunction="OR">
+  HIGH_DEPT_CD = #deptList[].deptCd#
+  </iterate>
+ </select>
+</sqlMap>

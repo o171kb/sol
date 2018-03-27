@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoCode" type="tt.com.bean.VoCoCode" />
+ <typeAlias alias="voCoCodeSp" type="tt.com.bean.VoCoCodeSp" />
+ <typeAlias alias="voCoLoginUserInfo" type="tt.com.bean.VoCoLoginUserInfo" />
+ <typeAlias alias="voCoUserGrpMenu" type="tt.com.bean.VoCoUserGrpMenu" />
+ <typeAlias alias="voCoMenu" type="tt.com.bean.VoCoMenu" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- ############################################################################################## -->
+ <!-- 로그인 -->  
+ <!-- ############################################################################################## -->
+ <select id="DaoCoUser.user.login.info.mssql" parameterClass="coTtStrParams" resultClass="voCoLoginUserInfo">
+  SELECT
+   A.USER_ID AS userId,
+   A.USER_NM AS userNm,
+   B.GRP_CL AS grpCl,
+   B.MEM_DEPT_NO AS memDeptNo,
+   C.DEPT_CD AS deptCd,
+   C.DEPT_NM AS deptNm
+  FROM
+   TUSER A,  
+   TUSERGRP B,
+   TDEPT C
+  WHERE
+   A.USER_ID = #USER_ID# AND
+   A.USER_GRP_NO = B.USER_GRP_NO AND
+   A.USE_YN = '1' AND
+   A.DEPT_NO = C.DEPT_NO
+ </select>
+
+ <!-- ############################################################################################## -->
+ <!-- 메뉴 -->
+ <!-- ############################################################################################## -->
+ <!-- 모든메뉴 -->
+ <select id="DaoCoMenu.total.menu.list.mssql" parameterClass="coTtStrParams" resultClass="voCoUserGrpMenu">
+  SELECT
+   C.MENU_LVL AS menuLvl,
+   D.MENU_ACTION AS menuAction,
+   D.MENU_CL AS menuCl
+  FROM
+   TUSER A,
+   TUSERGRP B,
+   TUSERGRPMENU C,
+   TMENU D
+  WHERE
+   A.USER_ID = #USER_ID# AND
+   A.USER_GRP_NO = B.USER_GRP_NO AND
+   B.USER_GRP_NO = C.USER_GRP_NO AND
+   C.MENU_ID = D.MENU_ID AND
+   D.MENU_CL >= #GRP_CL# AND
+   ( C.MENU_LVL = '7' OR C.MENU_LVL = '15' ) 
+ </select>
+
+ <!-- 로그인사용자메뉴 -->
+ <select id="DaoCoMenu.user.menu.list.mssql" parameterClass="coTtStrParams" resultClass="voCoMenu">
+  SELECT
+   M.MENU_ID        AS menuId,
+   M.MENU_GRP_NO    AS menuGrpNo,
+   M.MENU_GRP_NM    AS menuGrpNm,
+   M.MENU_GRP_ICON  AS menuGrpIcon,
+   M.MENU_SEQ_NO    AS menuSeqNo,
+   M.MENU_NM        AS menuNm,
+   M.MENU_ICON      AS menuIcon,
+   M.MENU_EXP       AS menuExp,
+   M.MENU_ACTION    AS menuAction,
+   M.MENU_CL        AS menuCl,
+   GM.MENU_LVL AS menuLvl
+   <!-- ,
+   G.GRP_YN AS grpYn, 
+   G.SELF_YN AS selfYn,
+   G.MST_YN AS mstYn-->
+  FROM
+   TUSER U,
+   TUSERGRP G,
+   TUSERGRPMENU GM,
+   TMENU M
+  WHERE
+   U.USER_ID = #USER_ID# AND
+   U.USER_GRP_NO = G.USER_GRP_NO AND
+   G.USER_GRP_NO = GM.USER_GRP_NO AND
+   GM.MENU_ID = M.MENU_ID AND
+   M.MENU_CL >= #GRP_CL# AND
+   ( GM.MENU_LVL = '7' OR GM.MENU_LVL = '15' ) 
+  ORDER BY
+   M.MENU_ID,
+   M.MENU_GRP_NO
+ </select>
+
+
+</sqlMap>

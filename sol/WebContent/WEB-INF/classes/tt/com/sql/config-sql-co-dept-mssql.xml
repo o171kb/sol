@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoDept" type="tt.com.bean.VoCoDept" />
+ <typeAlias alias="voBoard" type="tt.bean.VoBoard" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- TDEPT ALL SELECT 절 -->
+ <sql id="dept.all.select.mssql">
+  SELECT
+   DEPT_NO        AS deptNo,
+   DEPT_CD        AS deptCd,
+   MADE_CD        AS madeCd,
+   HIGH_DEPT_CD   AS highDeptCd,
+   DEPT_NM        AS deptNm,
+   DEPT_NM_EN     AS deptNmEn,
+   DEPT_EXP       AS deptExp,
+   DEPT_EML       AS deptEml,
+   DEPT_TEL_NO    AS deptTelNo,
+   DEPT_ZIP_CD    AS deptZipCd,
+   DEPT_ZIP_ADDR1 AS deptZipAddr1,
+   DEPT_ZIP_ADDR2 AS deptZipAddr2,
+   DEPT_TP        AS deptTp,
+   REG_DM         AS regDm,
+   UPD_DM         AS updDm,
+   USER_ID        AS userId
+  FROM
+   TDEPT
+ </sql>
+
+
+ <!-- PAGE SELECT START 절 -->
+ <sql id="dept.page.select.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="dept.page.select.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="dept.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="dept.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+
+ <!-- ############################################################################################## -->
+ <!-- 부서 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 부서검색 페이지 SELECT 절 -->
+ <sql id="DaoCoDept.dept.search.page.list.body.mssql">
+  SELECT
+   e.DEPT_NO AS deptNo,
+   e.DEPT_CD AS deptCd,
+   e.MADE_CD AS madeCd,
+   e.HIGH_DEPT_CD AS highDeptCd,
+   e.DEPT_NM AS deptNm,
+   e.DEPT_NM_EN AS deptNmEn,
+   e.DEPT_EXP AS deptExp,
+   e.DEPT_EML AS deptEml,
+   e.DEPT_TEL_NO AS deptTelNo,
+   e.DEPT_ZIP_CD AS deptZipCd,
+   e.DEPT_ZIP_ADDR1 AS deptZipAddr1,
+   e.DEPT_ZIP_ADDR2 AS deptZipAddr2,
+   e.DEPT_TP AS deptTp,
+   e.REG_DM AS regDm,
+   e.UPD_DM AS updDm,
+   e.USE_YN AS useYn,
+   e.USER_ID AS userId,
+   ROW_NUMBER() OVER( ORDER BY e.DEPT_CD ) AS ROWNUM
+  FROM
+   TDEPT e
+  WHERE
+   e.USE_YN='1'
+  <isEqual prepend="AND" property="searchStatus" compareValue="0">
+   		e.DEPT_CD LIKE '%' + #searchDeptNm# + '%'
+  </isEqual>
+  <isEqual prepend="AND" property="searchStatus" compareValue="1">
+   		e.DEPT_NM LIKE '%' + #searchDeptNm# + '%'
+  </isEqual>
+  
+  <!-- <isNotEmpty prepend="AND" property="searchDeptCd">
+   e.DEPT_CD LIKE '%' + #searchDeptCd# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchDeptNm">
+   e.DEPT_NM LIKE '%' + #searchDeptNm# + '%'
+  </isNotEmpty> -->
+ </sql>
+
+ <select id="DaoCoDept.dept.search.page.list.mssql" parameterClass="coTtObjParams" resultClass="voCoDept">
+  <include refid="dept.page.select.start.mssql"/>
+  <include refid="DaoCoDept.dept.search.page.list.body.mssql"/>
+  <include refid="dept.page.select.end.mssql"/>
+ </select>
+
+ <select id="DaoCoDept.dept.search.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  <include refid="dept.page.cnt.start.mssql"/>
+  <include refid="DaoCoDept.dept.search.page.list.body.mssql"/>
+  <include refid="dept.page.cnt.end.mssql"/>
+ </select>
+
+  <!-- 부서삭제 -->
+ <delete id="DaoCoDept.dept.delete.mssql" parameterClass="coTtObjParams" >
+   UPDATE
+       TDEPT
+   SET
+       USE_YN =  '0'
+   WHERE
+       DEPT_NO = #deptNo#
+ </delete>
+
+ <!-- 부서정보 SELECT 절 -->
+ <select id="DaoCoDept.dept.search.dtl.mssql" parameterClass="coTtObjParams" resultClass="voCoDept">
+   <include refid="dept.all.select.mssql"/>
+   WHERE DEPT_NO = #deptNo# AND
+       USE_YN =  '1'
+ </select>
+
+ <!-- 부서수정 -->
+ <update id="DaoCoDept.dept.update.mssql" parameterClass="coTtObjParams" >
+   UPDATE
+       TDEPT
+   SET
+       DEPT_NM =  #deptNm#,
+       DEPT_NM_EN = #deptNmEn#,
+       DEPT_EXP = #deptExp#
+   WHERE
+       DEPT_NO = #deptNo#
+ </update>
+
+ <!-- 부서CD 중복체크 SELECT절 -->
+ <select id="DaoCoDept.dept.search.cd.mssql" parameterClass="coTtObjParams" resultClass="voCoDept">
+   <include refid="dept.all.select.mssql"/>
+   WHERE DEPT_CD = #deptCd#
+ </select>
+
+ <!-- 부서검색팝업 SELECT 절 -->
+ <sql id="DaoCoDept.dept.search.list.body.mssql">
+  SELECT
+   DEPT_NO AS deptNo,
+   DEPT_CD AS deptCd,
+   MADE_CD AS madeCd,
+   HIGH_DEPT_CD AS highDeptCd,
+   DEPT_NM AS deptNm,
+   DEPT_NM_EN AS deptNmEn,
+   DEPT_EXP AS deptExp,
+   DEPT_EML AS deptEml,
+   DEPT_TEL_NO AS deptTelNo,
+   DEPT_ZIP_CD AS deptZipCd,
+   DEPT_ZIP_ADDR1 AS deptZipAddr1,
+   DEPT_ZIP_ADDR2 AS deptZipAddr2,
+   DEPT_TP AS deptTp,
+   REG_DM AS regDm,
+   UPD_DM AS updDm,
+   USE_YN AS useYn,
+   USER_ID AS userId
+  FROM
+   TDEPT
+  WHERE
+   USE_YN='1'
+ </sql>
+
+ <select id="DaoCoDept.dept.list.all.mssql" parameterClass="coTtObjParams" resultClass="voCoDept">
+  <include refid="DaoCoDept.dept.search.list.body.mssql"/>
+  ORDER BY MADE_CD
+ </select>
+
+
+ <!-- 부서등록용 상위부서가 가지고 있는 부서수 + 1 SELECT 절 -->
+ <select id="DaoCoDept.dept.highdept.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  SELECT
+      COUNT(*) + 1 AS CNT
+  FROM
+      TDEPT
+  WHERE
+      HIGH_DEPT_CD = #highDeptCd#
+ </select>
+
+ <!-- 부서상세 BY DEPT_CD SELECT절 -->
+ <select id="DaoCoDept.dept.dtl.cd.mssql" parameterClass="coTtObjParams" resultClass="voCoDept">
+   <include refid="dept.all.select.mssql"/>
+   WHERE DEPT_CD = #deptCd#
+       AND  USE_YN='1'
+ </select>
+
+ <!-- 부서등록 INSERT절 -->
+ <insert id="DaoCoDept.dept.insert.mssql" parameterClass="coTtObjParams" >
+  INSERT INTO TDEPT (
+   DEPT_NO, DEPT_CD,
+   MADE_CD, HIGH_DEPT_CD, DEPT_NM,
+   DEPT_NM_EN, DEPT_EXP, DEPT_EML,
+   DEPT_TEL_NO, DEPT_ZIP_CD, DEPT_ZIP_ADDR1,
+   DEPT_ZIP_ADDR2,DEPT_TP, REG_DM,
+   UPD_DM, USE_YN, USER_ID
+  )VALUES(
+   #DEPT_NO#, #DEPT_CD#,
+   #MADE_CD#, #HIGH_DEPT_CD#, #DEPT_NM#,
+   #DEPT_NM_EN#, #DEPT_EXP#, #DEPT_EML#,
+   #DEPT_TEL_NO#, #DEPT_ZIP_CD#, #DEPT_ZIP_ADDR1#,
+   #DEPT_ZIP_ADDR2#, #DEPT_TP#, #REG_DM#,
+   #UPD_DM#, #USE_YN#, #USER_ID#
+  )
+ </insert>
+
+ <!-- 부서등록용 MAX 부서번호취득 -->
+ <select id="DaoCoDept.dept.max.deptno.mssql" resultClass="int">
+  SELECT
+    MAX(DEPT_NO) AS DEPT_MAX_NO
+  FROM
+      TDEPT
+ </select>
+
+ <!-- 부서에 속한 user list 총 갯수 -->
+ <select id="DaoCoDept.dept.user.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+   SELECT
+     count(*) as CNT
+   FROM
+     TUSER
+   WHERE
+     DEPT_NO = #deptNo#
+ </select>
+</sqlMap>

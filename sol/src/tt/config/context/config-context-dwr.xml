@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+ xmlns:dwr="http://www.directwebremoting.org/schema/spring-dwr" xmlns:util="http://www.springframework.org/schema/util"
+ xmlns:aop="http://www.springframework.org/schema/aop"
+ xsi:schemaLocation="
+    http://www.directwebremoting.org/schema/spring-dwr http://www.directwebremoting.org/schema/spring-dwr-2.0.xsd
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.1.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+ <!-- ====================================================================== -->
+ <!-- View Resolver Configuration -->
+ <!-- ====================================================================== -->
+ <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/jsp/*/"
+  p:suffix=".jsp" p:order="1" />
+ <bean class="org.springframework.web.servlet.view.BeanNameViewResolver" p:order="0" />
+
+ <!-- ====================================================================== -->
+ <!-- Direct Web Remoting Configuration -->
+ <!-- ====================================================================== -->
+ <dwr:controller id="dwrController" debug="true" />
+
+ <bean class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping" />
+
+ <dwr:configuration>
+  <dwr:convert type="bean" class="tt.bean.*" />
+  <dwr:convert type="bean" class="tt.com.bean.*" />
+ </dwr:configuration>
+
+ <!-- ====================================================================== -->
+ <!-- Direct Web Remoting Component -->
+ <!-- ====================================================================== -->
+ <!-- base Service -->
+ <bean id="ttBaseService" class="tt.base.module.TtBaseService" >
+  <property name="daoCoUser"><ref bean="daoCoUser" /></property>
+  <property name="daoCoMenu"><ref bean="daoCoMenu" /></property>
+  <property name="daoCoDept"><ref bean="daoCoDept" /></property>
+  <property name="daoCoGroup"><ref bean="daoCoGroup" /></property>
+  <property name="daoExct"><ref bean="daoExct" /></property>
+  <property name="daoExctDraft"><ref bean="daoExctDraft" /></property>
+  <property name="daoExctEscortDraft"><ref bean="daoExctEscortDraft" /></property>
+  <property name="daoCustomer"><ref bean="daoCustomer" /></property>
+  <property name="daoBoardSearch"><ref bean="daoBoardSearch" /></property>
+  <property name="daoMain"><ref bean="daoMain" /></property>
+  <property name="svCoFileService"><ref bean="svCoFileService" /></property>
+  <property name="daoMyDraft"><ref bean="daoMyDraft" /></property>
+  <property name="daoMyApproval"><ref bean="daoMyApproval" /></property>
+  <!-- <property name="daoExctApi"><ref bean="daoExctApi" /></property> -->
+ </bean>
+
+
+ <!-- base dao -->
+ <bean id="svCoFileService" class="tt.com.module.file.SvCoFileService" >
+ </bean>
+
+
+ <!-- base dao -->
+ <bean id="ttBaseDao" class="tt.base.dao.TtBaseDao" >
+  <property name="dbType" value="mssql"></property>
+ </bean>
+
+ <!-- base dao -->
+ <bean id="ttIncops5BaseDao" class="tt.dao.TtIncops5BaseDao" >
+  <property name="dbType" value="mssql"></property>
+ </bean>
+
+ <bean id="ttWkPolicyBaseDao" class="tt.dao.TtWkPolicyBaseDao" >
+  <property name="dbType" value="mssql"></property>
+ </bean>
+
+ <!-- base dao -->
+ <bean id="ttSecuPrintBaseDao" class="tt.dao.TtSecuPrintBaseDao" >
+  <property name="dbType" value="mssql"></property>
+ </bean>
+
+ <!-- ====================   서비스 설정  ==================================== -->
+ <!-- DWR 전용 서비스 -->
+ <bean id="SvDwrService" class="tt.module.com.dwr.SvDwrService" parent="ttBaseService">
+  <aop:scoped-proxy/>
+  <dwr:remote javascript="dwrManagement">
+   <!-- 결재자리스트 -->
+   <dwr:include method="getApprovalUserListAll"/>
+   <dwr:include method="paginate"/>
+   <dwr:include method="getApprovalPcListAll"/>
+   <dwr:include method="paginate_pc"/>
+
+   <dwr:include method="getApprovalSitePcListAll"/>
+   <dwr:include method="getApprovalSitePcListInfo"/>
+   <dwr:include method="paginate_sitePc"/>
+
+   <dwr:include method="getObjMsgListAll"/>
+   <dwr:include method="paginate_msg"/>
+   <dwr:include method="getObjActiveXListAll"/>
+   <!-- 규칙리스트 (사이트예외신청) -->
+   <dwr:include method="getRulesListDwrAll"/>
+   <!-- 시간대리스트 (사이트예외신청) -->
+   <dwr:include method="getTimeListDwrAll"/>
+  </dwr:remote>
+ </bean>
+
+
+ <!-- 자가진단 -->
+ <bean id="dwrSelfPcChk" class="tt.module.admin.selfcheck.SvDeptPcCheckService" parent="ttBaseService">
+   <aop:scoped-proxy/>
+   <dwr:remote javascript="dwrSelfPcChkManagement">
+     <!-- 대상자 -->
+     <dwr:include method="chkDeptUser" />
+     <dwr:include method="paginateChkDeptUser"/>
+
+     <!-- 점검자 -->
+     <dwr:include method="chkDeptPcUser" />
+     <dwr:include method="paginateChkUser" />
+     <!-- 점검PC -->
+     <dwr:include method="chkDeptPc" />
+     <dwr:include method="paginateChkDeptPc" />
+     <!-- 취약항목 -->
+     <dwr:include method="chkDeptDanger" />
+     <dwr:include method="paginateChkDeptDanger" />
+   </dwr:remote>
+ </bean>
+
+
+ <!-- 사용자그룹관리 -->
+ <bean id="dwrUserGrp" class="tt.com.module.group.SvCoGroupService" parent="ttBaseService">
+  <aop:scoped-proxy/>
+  <dwr:remote javascript="dwrUserGrpIdManagement">
+   <!-- 사용자그룹ID중복체크 -->
+   <dwr:include method="checkUserGrpId" />
+   <!-- 사용자그룹리스트(팝업용) -->
+   <dwr:include method="getSearchUserGroupListForDwr"/>
+   <dwr:include method="paginateUserGroupListForDwr"/>
+  </dwr:remote>
+ </bean>
+
+ <!-- 부서관리 -->
+ <bean id="dwrCompareCd" class="tt.com.module.dept.SvCoDeptService" parent="ttBaseService">
+  <aop:scoped-proxy/>
+  <dwr:remote javascript="dwrDeptCdManagement">
+   <!-- 부서코드중복체크 -->
+   <dwr:include method="checkDeptCd" />
+  </dwr:remote>
+ </bean>
+
+ <!-- 사용자관리 -->
+ <bean id="dwrUser" class="tt.com.module.user.SvCoUserService" parent="ttBaseService">
+  <aop:scoped-proxy/>
+  <dwr:remote javascript="dwrUserManagement">
+   <!-- 사용자ID중복체크 -->
+   <dwr:include method="checkUserId" />
+   <!-- 사용자리스트(팝업용) -->
+   <dwr:include method="getSearchUserDeptListForDwr"/>
+   <dwr:include method="paginateUserDeptListTotCnt"/>
+  </dwr:remote>
+ </bean>
+
+ <!-- ====================   DAO 설정  ====================================== -->
+ <!-- 사용자 -->
+ <bean id="daoCoUser" class="tt.com.dao.DaoCoUser" parent="ttBaseDao"/>
+
+ <!-- main -->
+ <bean id="daoMain" class="tt.dao.DaoMain" parent="ttBaseDao"/>
+
+ <!-- 메뉴 -->
+ <bean id="daoCoMenu" class="tt.com.dao.DaoCoMenu" parent="ttBaseDao"/>
+
+ <!-- 고객센터 -->
+ <bean id="daoCustomer" class="tt.dao.DaoCustomer" parent="ttBaseDao"/>
+
+
+ <!-- api -->
+ <bean id="daoExctApi" class="tt.dao.DaoExctApi" parent="ttBaseDao"/>
+
+
+ <!-- 부서 -->
+ <bean id="daoCoDept" class="tt.com.dao.DaoCoDept" parent="ttBaseDao">
+   <aop:scoped-proxy/>
+   <dwr:remote javascript="dwrManagementDept">
+     <dwr:include method="getDeptSearchListAll"/>
+   </dwr:remote>
+ </bean>
+
+ <!-- 게시관리 -->
+ <bean id="daoBoardSearch" class="tt.dao.DaoBoardSearch" parent="ttBaseDao"/>
+
+ <!-- incops5 관리 -->
+ <bean id="daoIncops5" class="tt.dao.DaoIncops5" parent="ttIncops5BaseDao"/>
+
+ <!-- WkPolicy 관리 -->
+ <bean id="daoExctSiteDraft" class="tt.dao.DaoExctSiteDraft" parent="ttWkPolicyBaseDao"/>
+
+  <!-- secuPrint 관리 -->
+ <bean id="daoSecuPrint" class="tt.dao.DaoSecuPrint" parent="ttSecuPrintBaseDao"/>
+
+ <!-- 나의신청현황 -->
+ <bean id="daoMyDraft" class="tt.dao.DaoMyDraft" parent="ttBaseDao"/>
+
+ <!-- 나의결재현황 -->
+ <bean id="daoMyApproval" class="tt.dao.DaoMyApproval" parent="ttBaseDao"/>
+
+
+ <!-- 예외 -->
+ <bean id="daoExct" class="tt.dao.DaoExct" parent="ttBaseDao"/>
+ <bean id="daoExctDraft" class="tt.dao.DaoExctDraft" parent="ttBaseDao"/>
+ <bean id="daoExctEscortDraft" class="tt.dao.DaoExctEscortDraft" parent="ttBaseDao"/>
+ <bean id="daoCoGroup" class="tt.com.dao.DaoCoGroup" parent="ttBaseDao">
+   <aop:scoped-proxy/>
+   <dwr:remote javascript="dwrManagementGroup">
+     <dwr:include method="getGrpSearchListAll"/>
+   </dwr:remote>
+ </bean>
+
+ <!-- 자가진단 -->
+ <bean id="daoMyPcCheck" class="tt.dao.DaoMyPcCheck" parent="ttBaseDao"/>
+ <bean id="daoDeptPcCheck" class="tt.dao.DaoDeptPcCheck" parent="ttBaseDao"/>
+
+
+</beans>

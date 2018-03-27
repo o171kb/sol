@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com-api">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voApprDetail" type="tt.bean.VoApprDetail" />
+
+	<!-- Escort 프로시저 조회 -->
+	<select id="DaoExctApi.selectExctApi.mssql" parameterClass="voApprDetail" resultClass="voApprDetail">
+		<![CDATA[
+		SELECT EXCT_ID, 
+		PRO_GUBUN as proGubun, 
+		GUBUN
+		FROM TEXCT
+		WHERE EXCT_ID = #exctId#
+		]]>
+	</select>
+
+</sqlMap>

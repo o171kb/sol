@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.mypage.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- MyPage|나의정보수정 -->
+ <definition name="admin.my.page.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의정보수정" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyPage.jsp" />
+ </definition>
+
+ <!-- MyPage|나의신청현황 -->
+ <definition name="admin.mypage.mydraft.list.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의신청현황" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyDraftList.jsp" />
+ </definition>
+
+ <!--  MyPage|나의신청현황|엑셀다운로드 -->
+ <definition name="admin.mypage.mydraft.excel.list.tiles" template="/WEB-INF/jsp/module/admin/myPage/adMyDraftExcelList.jsp"/>
+
+  <!-- MyPage|나의신청현황|첨부통제 예외신청|상세 -->
+ <definition name="admin.mypage.mydraft.ATTACHDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의신청현황|첨부통제 예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyAttachView.jsp" />
+ </definition>
+
+ <!-- MyPage|나의신청현황|Escort 예외신청|상세 -->
+ <definition name="admin.mypage.mydraft.ESCORTDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의신청현황|Escort 예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyDraftView.jsp" />
+ </definition>
+
+ <!-- MyPage|나의신청현황|웹메일 예외신청|상세 -->
+ <definition name="admin.mypage.mydraft.MAILDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의신청현황|웹메일 예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyMailView.jsp" />
+ </definition>
+
+ <!-- MyPage|나의신청현황|메신저 예외신청|상세 -->
+ <definition name="admin.mypage.mydraft.MSGDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의신청현황|메신저 예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyMessagerView.jsp" />
+ </definition>
+
+ <!-- MyPage|나의신청현황|출력보안 예외신청|상세 -->
+ <definition name="admin.mypage.mydraft.OUTPUTDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의신청현황|출력보안 예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyOutputView.jsp" />
+ </definition>
+
+ <!-- MyPage|나의신청현황|사이트 예외신청|상세 -->
+ <definition name="admin.mypage.mydraft.SITEDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의신청현황|사이트 예외신청" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMySiteView.jsp" />
+ </definition>
+
+ <!-- MyPage|나의결재함 -->
+ <definition name="admin.mypage.myapproval.list.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의결재함" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyApprovalList.jsp" />
+ </definition>
+
+ <!-- MyPage|나의결재함 리스트 엑셀다운로드-->
+ <definition name="admin.mypage.approval.excel.list" template="/WEB-INF/jsp/module/admin/myPage/adApprovalExcelList.jsp"/>
+
+  <!-- MyPage|나의결재함|첨부통제 예외|상세 -->
+ <definition name="admin.mypage.appr.ATTACHDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의결재현황|첨부통제 예외" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyAttactApprDtl.jsp" />
+ </definition>
+
+ <!-- MyPage|나의결재함|Escort 예외|상세 -->
+ <definition name="admin.mypage.appr.ESCORTDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의결재현황|Escort 예외" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyEscortApprDtl.jsp" />
+ </definition>
+
+ <!-- MyPage|나의결재함|웹메일 예외|상세 -->
+ <definition name="admin.mypage.appr.MAILDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의결재현황|웹메일 예외" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyMailApprDtl.jsp" />
+ </definition>
+
+ <!-- MyPage|나의결재함|메신저 예외|상세 -->
+ <definition name="admin.mypage.appr.MSGDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의결재현황|메신저 예외" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyMsgApprDtl.jsp" />
+ </definition>
+
+ <!-- MyPage|나의결재함|출력보안 예외|상세 -->
+ <definition name="admin.mypage.appr.OUTPUTDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의결재현황|출력보안 예외" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMyOutputApprDtl.jsp" />
+ </definition>
+
+<!-- MyPage|나의결재함|사이트 예외|상세 -->
+ <definition name="admin.mypage.appr.SITEDRAFT.view.tiles" extends="admin.mypage.template.tiles">
+  <put-attribute name="title" value="MyPage|나의결재현황|사이트 예외" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/myPage/adMySiteApprDtl.jsp" />
+ </definition>
+</tiles-definitions>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voSelfDiaGroup" type="tt.bean.VoSelfDiaGroup"/>
+ <typeAlias alias="voSelfDiaItem" type="tt.bean.VoSelfDiaItem"/>
+ <typeAlias alias="voSelfDiagnostic" type="tt.bean.VoSelfDiagnostic"/>
+ <typeAlias alias="voPcCheck" type="tt.bean.VoPcCheck"/>
+
+ <select id="DaoMyPcCheck.self.item.list.mssql" parameterClass="coTtObjParams" resultClass="voSelfDiaItem">
+     SELECT
+          a.Id as id
+         ,a.GroupNm as groupNm
+         ,a.InsDate as insDate
+         ,a.UpdDate as updDate
+         ,a.IsDel as isDel
+         ,a.IsSys as isSys
+         ,b.Id as id
+         ,b.GroupId as groupId
+         ,b.ChkValue as chkValue
+         ,b.ChkCurrent as chkCurrent
+         ,b.ChkItem as chkItem
+         ,b.ChkResult as chkResult
+         ,b.GuideIdx as guideIdx
+         ,b.Seq as seq
+         ,b.Enable as enable
+         ,b.InsDate as insDate
+         ,b.UpdDate as updDate
+         ,b.IsDel as YsDel
+         ,b.IsSys as isSys
+    FROM
+         leedb.dbo.SELF_DIAGNOSTIC_GROUP a
+    LEFT JOIN
+         leedb.dbo.SELF_DIAGNOSTIC_ITEM b
+    ON
+         a.Id = b.GroupId
+ </select>
+  <!-- 총 개수 -->
+ <select id="DaoMyPcCheck.self.item.list.totCnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+   SELECT
+      COUNT(*)
+       FROM
+            leedb.dbo.SELF_DIAGNOSTIC_GROUP a
+       LEFT JOIN
+            leedb.dbo.SELF_DIAGNOSTIC_ITEM b
+       ON
+            a.Id = b.GroupId
+ </select>
+
+ <!-- 자가진단 나의PC 정보 -->
+
+ <!--
+
+ INSERT INTO SELF_DIAGNOSTIC (
+                  SerialNumber
+                 ,UserId
+                 ,MacAddress
+                 ,OSType
+                 ,IsDel
+                 ,IsSys
+      ) VALUES (
+                 #serialNumber#
+                 ,#userId#
+                 ,#macAddress#
+                 ,#osType#
+                 ,'False'
+                 ,'False'
+      )
+
+  -->
+ <insert id="DaoMyPcCheck.self.myPc.check.mssql" parameterClass="coTtObjParams">
+    <selectKey keyProperty="idx" resultClass="Integer">
+    {call InsSelfDiagnostic(#serialNumber#,#userId#,#macAddress#,#osType#,'False','False')}
+   --   SELECT @@IDENTITY AS idx
+       SELECT SCOPE_IDENTITY() AS idx
+    </selectKey>
+ </insert>
+
+ <update id="DaoMyPcCheck.myPc.allSafety.result.mssql" parameterClass="coTtObjParams">
+   UPDATE
+      SELF_DIAGNOSTIC
+   SET
+      AllSafety = #allSafety#
+ WHERE  Idx = #selfDiagnosticIdx#
+ </update>
+
+ <!-- 자가진단 PC 검사결과 정보 -->
+ <procedure id="DaoMyPcCheck.self.myPc.check.result.mssql" parameterClass="coTtObjParams" resultClass="voPcCheck">
+   <![CDATA[
+     {call InsSelfDiagnosticResult(#selfDiagnosticIdx#,#itemId#,#isSafety#,#description#,'false','false')}
+   ]]>
+ </procedure>
+
+ <select id="DaoMyPcCheck.self.result.pk.list.mssql" parameterClass="coTtObjParams" resultClass="voPcCheck">
+
+     SELECT
+            t.Idx as idx
+           ,t.UserId
+           ,t.MacAddress as macAddress
+           ,t.SerialNumber as serialNumber
+           ,t.OSType as osType
+           ,CONVERT(CHAR(10), t.InsDate, 23) as insDate
+     FROM
+       (SELECT
+            ROW_NUMBER() OVER (ORDER BY D.Idx DESC) rownum
+           ,*
+        FROM
+            SELF_DIAGNOSTIC D
+        WHERE
+            D.UserId = #userId#
+        )   t
+           ,SELF_DIAGNOSTIC D
+     WHERE
+            D.Idx =
+       (SELECT TOP 1
+            R.SelfDiagnosticIdx
+        FROM
+            SELF_DIAGNOSTIC_RESULT R
+           ,SELF_DIAGNOSTIC D
+        WHERE
+            R.SelfDiagnosticIdx = D.Idx
+        AND
+            D.UserId = #userId#
+        ORDER BY
+            R.SelfDiagnosticIdx DESC
+        )
+    AND
+            D.UserId = #userId#
+    AND
+            t.rownum BETWEEN 1 AND 5
+    ORDER BY
+            t.rownum DESC
+     <!-- SELECT TOP 5
+       R.SelfDiagnosticIdx
+       ,D.MacAddress
+       ,D.SerialNumber
+       ,D.OSType
+       ,CONVERT(CHAR(10), D.InsDate, 23) as insDate
+     FROM
+       SELF_DIAGNOSTIC D, SELF_DIAGNOSTIC_RESULT R
+     WHERE
+        D.UserId = #userId#
+     AND
+        D.Idx = R.SelfDiagnosticIdx
+     GROUP BY
+        R.SelfDiagnosticIdx ,D.MacAddress  ,D.SerialNumber ,D.OSType ,D.InsDate ,D.Idx
+     ORDER BY
+        D.Idx DESC -->
+ </select>
+
+ <select id="DaoMyPcCheck.self.isSafety.cnt.mssql" parameterClass="coTtObjParams" resultClass="voPcCheck">
+    SELECT
+         a.Idx as idx
+        ,a.SelfDiagnosticIdx as selfDiagnosticIdx
+        ,a.ItemId as itemId
+        ,a.IsSafety as isSafety
+        ,a.Description as description
+        ,a.InsDate as insDate
+        ,a.UpdDate as updDate
+        ,a.IsDel as isDel
+        ,a.IsSys as isSys
+        ,b.Idx as idx
+        ,b.SerialNumber as serialNumber
+        ,b.UserId as userId
+        ,b.MacAddress as macAddress
+        ,b.OSType as osType
+        ,CONVERT(CHAR(10), b.InsDate, 23) as insDate
+        ,b.UpdDate as updDate
+        ,b.IsDel as isDel
+        ,b.IsSys as isSys
+    FROM leedb.dbo.SELF_DIAGNOSTIC_RESULT a
+    LEFT JOIN
+         leedb.dbo.SELF_DIAGNOSTIC b
+    ON
+         a.SelfDiagnosticIdx = b.Idx
+    WHERE
+         a.SelfDiagnosticIdx = #selfDiagnosticIdx#
+ </select>
+
+ <!-- 검사결과 list -->
+ <select id="DaoMyPcCheck.self.result.list.mssql" parameterClass="coTtObjParams" resultClass="voPcCheck">
+
+     SELECT
+         R.Idx as idx
+        ,R.SelfDiagnosticIdx as selfDiagnosticIdx
+        ,R.ItemId as itemId
+        ,R.IsSafety as isSafety
+        ,R.Description as description
+        ,R.InsDate as insDate
+        ,R.UpdDate as updDate
+        ,R.IsDel as isDel
+        ,R.IsSys as isSys
+        ,D.Idx as idx
+        ,D.AllSafety as allSafety
+        ,D.SerialNumber as serialNumber
+        ,D.UserId as userId
+        ,D.MacAddress as macAddress
+        ,D.OSType as osType
+        ,CONVERT(CHAR(10), D.InsDate, 23) as insDate
+        ,D.UpdDate as updDate
+        ,D.IsDel as isDel
+        ,D.IsSys as isSys
+    FROM
+         SELF_DIAGNOSTIC_RESULT R
+    LEFT JOIN
+         SELF_DIAGNOSTIC D
+    ON
+         R.SelfDiagnosticIdx = D.Idx
+    WHERE
+         D.UserId = #userId#
+    AND
+         R.SelfDiagnosticIdx = #idx#
+    ORDER BY R.ItemId ASC
+
+ </select>
+
+ <select id="DaoMyPcCheck.self.result.list.totCnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+   SELECT COUNT (*)
+       FROM leedb.dbo.SELF_DIAGNOSTIC_RESULT a
+       LEFT JOIN
+            leedb.dbo.SELF_DIAGNOSTIC b
+       ON
+            a.SelfDiagnosticIdx = b.Idx
+       WHERE
+            b.UserId = #userId#
+       AND
+            a.SelfDiagnosticIdx IN (
+              SELECT TOP 5
+                 D.Idx
+              FROM
+               leedb.dbo.SELF_DIAGNOSTIC D, leedb.dbo.SELF_DIAGNOSTIC_RESULT R
+              WHERE
+                 D.UserId = #userId#
+              AND
+                 D.Idx = R.SelfDiagnosticIdx
+              GROUP BY
+                 R.SelfDiagnosticIdx ,D.Idx
+              ORDER BY
+                 R.SelfDiagnosticIdx
+            )
+
+ </select>
+
+ <!-- insert 하려 만든 select -->
+ <select id="DaoMyPcCheck.self.itemId.chkValue.list.mssql" parameterClass="coTtObjParams" resultClass="voPcCheck">
+    SELECT
+          a.Id as id
+         ,a.GroupNm as groupNm
+         ,a.InsDate as insDate
+         ,a.UpdDate as updDate
+         ,a.IsDel as isDel
+         ,a.IsSys as isSys
+         ,b.Id as pkId
+         ,b.GroupId as groupId
+         ,b.ChkValue as chkValue
+         ,b.ChkCurrent as chkCurrent
+         ,b.ChkItem as chkItem
+         ,b.ChkResult as chkResult
+         ,b.GuideIdx as guideIdx
+         ,b.Seq as seq
+         ,b.Enable as enable
+         ,b.InsDate as insDate
+         ,b.UpdDate as updDate
+         ,b.IsDel as YsDel
+         ,b.IsSys as isSys
+    FROM
+         leedb.dbo.SELF_DIAGNOSTIC_GROUP a
+    LEFT JOIN
+         leedb.dbo.SELF_DIAGNOSTIC_ITEM b
+    ON
+         a.Id = b.GroupId
+ </select>
+
+
+</sqlMap>

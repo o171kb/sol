@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com-wkPolicy">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voWkPolicy" type="tt.bean.VoWkPolicy"/>
+ <typeAlias alias="voPcBasic" type="tt.bean.VoPcBasic" />
+
+
+ <select id="DaoExctSiteDraft.sitePc.basic.list.all.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic" >
+	 <!-- <include refid="DaoExctSiteDraft.page.select.start.mssql"/>
+	 <include refid="DaoExctSiteDraft.sitePc.basic.all.mssql"/>
+	 AND SDEPTNM = #deptNm#
+	 <include refid="DaoExctSiteDraft.page.select.end.mssql"/> -->
+	 SELECT * FROM (
+		 SELECT EmpName as hName, 
+              UserID as userId, 
+              EMAIL as eMail, 
+              ROW_NUMBER() OVER( ORDER BY UserID ) AS ROWNUM 
+         FROM WK_POLICY.dbo.TB_MEMPDATA 
+         WHERE 1=1
+		<isNotEmpty prepend="AND" property="hName">
+			EmpName LIKE '%' + #hName# + '%'
+		</isNotEmpty>
+	<![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </select>
+
+ <select id="DaoExctSiteDraft.sitePc.basic.list.all.cnt.mssql" parameterClass="voPcBasic" resultClass="int">
+	 <!-- <include refid="DaoExctSiteDraft.page.cnt.start.mssql"/>
+	 <include refid="DaoExctSiteDraft.sitePc.basic.all.mssql"/>
+	 AND SDEPTNM = #deptNm#
+	 <include refid="DaoExctSiteDraft.page.cnt.end.mssql"/> -->
+	 SELECT COUNT (*) AS CNT FROM (
+		 SELECT EmpName as hName, 
+              UserID as userId, 
+              EMAIL as eMail, 
+              ROW_NUMBER() OVER( ORDER BY UserID ) AS ROWNUM 
+         FROM WK_POLICY.dbo.TB_MEMPDATA 
+         WHERE 1=1
+		<isNotEmpty prepend="AND" property="hName">
+			EmpName LIKE '%' + #hName# + '%'
+		</isNotEmpty>
+	 ) TCNT
+ </select>
+<!-- PC_BASIC ALL SELECT 절 -->
+ <!-- 사이트 예외 사용자 변경 -->
+<sql id="DaoExctSiteDraft.sitePc.basic.all.mssql">
+	SELECT  
+		EmpName as hName,
+		UserID as userId,
+		EmployeeNo as employeeNo,
+		ROW_NUMBER() OVER( ORDER BY UserID ) AS ROWNUM
+   FROM WK_POLICY.dbo.TB_MEMPDATA 
+   		WHERE 1=1
+  <isNotEmpty prepend="AND" property="hName">
+   EmpName LIKE '%' + #hName# + '%'
+  </isNotEmpty>
+</sql>
+
+
+<!-- PAGE SELECT START 절 -->
+ <sql id="DaoExctSiteDraft.page.select.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="DaoExctSiteDraft.page.select.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="DaoExctSiteDraft.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="DaoExctSiteDraft.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+ <!-- 규칙리스트 -->
+ <select id="DaoExctSiteDraft.dwr.wk.policy.rules.list.mssql" parameterClass="coTtObjParams" resultClass="voWkPolicy">
+    SELECT
+       RuleGUID as ruleGUID
+      ,RuleName as ruleName
+      ,WebRuleGUID as webRuleGUID
+      ,Descript as descript
+      ,DefaultPortAct as defaultPortAct
+      ,DeptGUID as deptGUID
+  FROM
+      WK_POLICY.dbo.TB_TRULE
+ </select>
+
+ <!-- 시간대리스트 -->
+ <select id="DaoExctSiteDraft.dwr.wk.policy.time.list.mssql" parameterClass="coTtObjParams" resultClass="voWkPolicy">
+    SELECT
+       TimeGUID as timeGUID
+      ,TimeValue as timeValue
+      ,TimeName as timeName
+      ,Descript as descript
+      ,DeptGUID as deptGUID
+  FROM
+      WK_POLICY.dbo.TB_MTIMEDATA
+ </select>
+
+ <select id="DaoExctSiteDraft.get.deptGUID.mssql" parameterClass="coTtObjParams" resultClass="voWkPolicy">
+    SELECT
+      a.DeptGUID as deptGUID,
+      a.EmpGUID as empGUID
+    FROM
+      WK_POLICY.dbo.TB_MEMPDATA a
+    WHERE
+      a.UserID = #userId#
+ </select>
+ 
+ <procedure id="DaoExctSiteDraft.insert.appr.exception.site.mssql" parameterClass="coTtObjParams" >
+   <![CDATA[
+     {call dbo.spEmpPol_Add_Delegation(#empGUID#,#appId#,#ruleGUID#,#timeGUID#,'1','1','0',#deptGUID#)}
+   ]]>
+</procedure>
+
+<procedure id="DaoExctSiteDraft.update.appr.exception.site.mssql" parameterClass="coTtObjParams" >
+   <![CDATA[
+     {call dbo.spEmpPol_Update_CatExtend(#empGUID#,#appId#,#ruleGUID#,#timeGUID#,'1','1',#descript#,#endDm#,'-1', '0')}
+   ]]>
+</procedure>
+
+</sqlMap>

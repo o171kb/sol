@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voExct" type="tt.bean.VoExct" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+<sql id="exct.all.select.mssql">
+  SELECT
+   EXCT_ID AS EXCTID,
+   REAL_EXCT_NM AS REALEXCTNM,
+   EXCT_NM AS EXCTNM,
+   EXCT_DTL AS EXCTDTL,
+   PRO_GUBUN AS PROGUBUN,
+   USE_YN AS USEYN,
+   REG_DM AS REGDM,
+   UPD_DM AS UPDDM,
+   UPD_USER AS UPDUSER
+  FROM
+   TEXCT
+ </sql>
+ <!-- PAGE SELECT START 절 -->
+
+
+
+ <!-- ############################################################################################## -->
+ <!-- 부서 -->
+ <!-- ############################################################################################## -->
+
+<!--  용어 관리 리스트 -->
+<select id="DaoExct.getTermManageList.mssql" parameterClass="voExct" resultClass="voExct">
+  <include refid="exct.all.select.mssql"/>
+</select>
+
+<!--  예외처리 사용 용어 리스트 -->
+<select id="DaoExct.getUseTermManageList.mssql" parameterClass="voExct" resultClass="voExct">
+  <include refid="exct.all.select.mssql"/>
+  WHERE
+   USE_YN = 'Y'
+</select>
+
+<!--  용어 관리 수정 폼 -->
+<select id="DaoExct.getExctStringDtl.mssql" parameterClass="coTtObjParams" resultClass="voExct">
+  <include refid="exct.all.select.mssql"/>
+  WHERE
+   EXCT_ID = #exctId#
+</select>
+
+<!--  용어 관리 수정 액션 -->
+<update id="DaoExct.modifyExctString.mssql" parameterClass="coTtObjParams">
+  UPDATE
+    TEXCT
+  SET
+    EXCT_NM = #exctNm#,
+    EXCT_DTL = #exctDtl#,
+    USE_YN = #useYn#
+  WHERE
+    EXCT_ID = #exctId#
+</update>
+
+<!--  용어 관리 사용여부 액션 -->
+<update id="DaoExct.updateExctUseYn.mssql" parameterClass="coTtObjParams">
+  UPDATE
+    TEXCT
+  SET
+    USE_YN = #useYn#
+  WHERE
+    EXCT_ID = #exctId#
+</update>
+</sqlMap>

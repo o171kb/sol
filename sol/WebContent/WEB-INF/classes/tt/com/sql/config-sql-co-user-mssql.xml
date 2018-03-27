@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoUser" type="tt.com.bean.VoCoUser" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- TDEPT ALL SELECT 절 -->
+ <sql id="user.all.select.mssql">
+  SELECT
+   USER_ID        AS userId,
+   USER_PWD       AS userPwd,
+   USER_NM        AS userNm,
+   USER_GRP_NO    AS userGrpNo,
+   DEPT_NO        AS deptNo,
+   USER_POSITION  AS userPosition,
+   USER_TEL       AS userTel,
+   USER_MOBILE    AS userMobile,
+   USER_EMAIL     AS userEmail,
+   PROXY_APPR_YN  AS proxyApprYn,
+   PROXY_APPR_ID  AS proxyApprId,
+   REG_DM         AS regDm,
+   UPD_DM         AS updDm,
+   USE_YN         AS useYn,
+   REGR_ID        AS regrId,
+   AUTHORITY      AS authority,
+   ROW_NUMBER() OVER( ORDER BY USER_ID ) AS ROWNUM
+  FROM
+   TUSER
+ </sql>
+
+
+ <!-- PAGE SELECT START 절 -->
+ <sql id="user.page.select.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="user.page.select.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="user.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="user.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+
+ <!-- ############################################################################################## -->
+ <!-- 부서 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 부서검색 페이지 SELECT 절 -->
+ <sql id="DaoCoUser.user.search.page.list.body.mssql">
+  SELECT
+      TU.USER_ID AS userId,
+      TU.USER_PWD AS userPwd,
+      TU.USER_NM AS userNm,
+      TU.USER_GRP_NO AS userGrpNo,
+      TU.DEPT_NO AS deptNo,
+      TU.PROXY_APPR_ID AS proxyApprId,
+      TU.PROXY_APPR_YN AS proxyApprYn,
+      TU.USER_POSITION AS userPosition,
+      TU.USER_TEL AS userTel,
+      TU.USER_MOBILE AS userMobile,
+      TU.USER_EMAIL AS userEmail,
+      TD.DEPT_CD AS deptCd,
+      TD.MADE_CD AS madeCd,
+      TD.HIGH_DEPT_CD AS highDeptCd,
+      TD.DEPT_NM AS deptNm,
+      TD.DEPT_NM_EN AS deptNmEn,
+      TD.DEPT_EXP AS deptExp,
+      TD.DEPT_EML AS deptEml,
+      TD.DEPT_TEL_NO AS deptTelNo,
+      TD.DEPT_ZIP_CD AS deptZipCd,
+      TD.DEPT_ZIP_ADDR1 AS deptZipAddr1,
+      TD.DEPT_ZIP_ADDR2 AS deptZipAddr2,
+      TD.DEPT_TP AS deptTp,
+      TG.USER_GRP_ID AS userGrpId,
+      TG.APPR_YN AS apprYn,
+      TG.GRP_NM AS grpNm,
+      TG.GRP_EXP AS grpExp,
+      TG.GRP_TP AS grpTp,
+      TG.GRP_CL AS grpCl,
+      TG.MEM_DEPT_NO AS memDeptNo,
+      ROW_NUMBER() OVER( ORDER BY TU.USER_ID ) AS ROWNUM
+  FROM
+      TUSER TU,
+      TDEPT TD,
+      TUSERGRP TG
+  WHERE
+      TU.DEPT_NO = TD.DEPT_NO AND
+      TU.USER_GRP_NO = TG.USER_GRP_NO AND
+      TU.USE_YN = '1' AND
+      TD.USE_YN = '1' AND
+      TG.USE_YN = '1'
+   <isNotEmpty property="searchKeyword">
+    <isEqual prepend="AND" property="searchCd" compareValue="01">
+       TU.USER_ID LIKE '%' + #searchKeyword# + '%'
+    </isEqual>
+    <isEqual prepend="AND" property="searchCd" compareValue="02">
+       TU.USER_NM LIKE '%' + #searchKeyword# + '%'
+    </isEqual>
+    <isEqual prepend="AND" property="searchCd" compareValue="03">
+       TD.DEPT_NM LIKE '%' + #searchKeyword# + '%'
+    </isEqual>
+    <isEqual prepend="AND" property="searchCd" compareValue="04">
+       TG.GRP_NM LIKE '%' + #searchKeyword# + '%'
+    </isEqual>
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchUserGrpNo">
+    TU.USER_GRP_NO = #searchUserGrpNo#
+   </isNotEmpty>
+ </sql>
+
+ <select id="DaoCoUser.user.search.page.list.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+  <include refid="user.page.select.start.mssql"/>
+  <include refid="DaoCoUser.user.search.page.list.body.mssql"/>
+  <include refid="user.page.select.end.mssql"/>
+ </select>
+
+ <select id="DaoCoUser.user.search.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  <include refid="user.page.cnt.start.mssql"/>
+  <include refid="DaoCoUser.user.search.page.list.body.mssql"/>
+  <include refid="user.page.cnt.end.mssql"/>
+ </select>
+
+ <!-- 사번 중복체크 SELECT절 -->
+ <select id="DaoCoUser.user.search.user.id.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+   <include refid="user.all.select.mssql"/>
+   WHERE
+       USER_ID = #userId#
+ </select>
+
+
+<!-- 사용자(대행결재자용팝업) 페이지 SELECT 절 -->
+ <sql id="DaoCoUser.user.search.user.dept.page.body.mssql">
+  <include refid="user.all.select.mssql"/>
+  WHERE
+   USE_YN='1'
+  <isNotEmpty prepend="AND" property="DEPT_NO">
+   DEPT_NO = #DEPT_NO#
+  </isNotEmpty>
+ </sql>
+
+ <select id="DaoCoUser.user.search.user.dept.page.list.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+  <include refid="user.page.select.start.mssql"/>
+  <include refid="DaoCoUser.user.search.user.dept.page.body.mssql"/>
+  <include refid="user.page.select.end.mssql"/>
+ </select>
+
+ <select id="DaoCoUser.user.search.user.dept.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+  <include refid="user.page.cnt.start.mssql"/>
+  <include refid="DaoCoUser.user.search.user.dept.page.body.mssql"/>
+  <include refid="user.page.cnt.end.mssql"/>
+ </select>
+
+ <!-- 사용자 상세 -->
+ <select id="DaoCoUser.user.search.page.detail.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+  <include refid="DaoCoUser.user.search.page.list.body.mssql"/>
+  AND TU.USER_ID = #userId#
+ </select>
+
+ <!-- 사용자 등록 -->
+ <insert id="DaoCoUser.user.search.user.regist.mssql" parameterClass="coTtObjParams">
+  INSERT
+    INTO
+   TUSER
+      ( USER_ID,
+        USER_PWD,
+        USER_NM,
+        USER_GRP_NO,
+        DEPT_NO,
+        USER_POSITION,
+        USER_TEL,
+        USER_MOBILE,
+        USER_EMAIL,
+        PROXY_APPR_YN,
+        PROXY_APPR_ID,
+        REG_DM,
+        UPD_DM,
+        USE_YN,
+        REGR_ID,
+        AUTHORITY )
+   VALUES
+      ( #userId#,
+        #userPwd#,
+        #userNm#,
+        #userGrpNo#,
+        #deptNo#,
+        #userPosition#,
+        #userTel#,
+        #userMobile#,
+        #userEmail#,
+        #proxyApprYn#,
+        #proxyApprId#,
+        #regDm#,
+        #updDm#,
+        #useYn#,
+        #regrId#,
+        #authority# )
+ </insert>
+
+ <!-- 사용자 수정 -->
+ <update id="DaoCoUser.user.search.user.modify.mssql" parameterClass="coTtObjParams">
+  UPDATE
+     TUSER
+   SET
+     <isNotEmpty property="userPwd">
+      USER_PWD = #userPwd#,
+     </isNotEmpty>
+      USER_NM = #userNm#,
+      USER_GRP_NO = #userGrpNo#,
+      DEPT_NO = #deptNo#,
+      USER_POSITION = #userPosition#,
+      USER_TEL = #userTel#,
+      USER_MOBILE = #userMobile#,
+      USER_EMAIL = #userEmail#,
+      PROXY_APPR_YN = #proxyApprYn#,
+      PROXY_APPR_ID = #proxyApprId#,
+      UPD_DM = #updDm#,
+      USE_YN = #useYn#,
+      REGR_ID = #regrId#,
+     <isNotEmpty property="authority">
+      AUTHORITY = #authority#
+     </isNotEmpty>
+ WHERE USER_ID = #userId#
+ </update>
+
+ <!-- 사용자 삭제 -->
+ <update id="DaoCoUser.user.delete.mssql" parameterClass="coTtObjParams">
+  UPDATE TUSER
+       SET
+       USE_YN = #userYn#
+  WHERE USER_ID = #userId#
+ </update>
+
+ <!-- 대행결제자 name -->
+ <select id="DaoCoUser.user.select.proxyNm.mssql" parameterClass="coTtObjParams" resultClass="java.lang.String">
+   SELECT
+       USER_NM as userNm
+   FROM
+       TUSER
+   WHERE
+       USER_ID = #proxyApprId#
+ </select>
+</sqlMap>

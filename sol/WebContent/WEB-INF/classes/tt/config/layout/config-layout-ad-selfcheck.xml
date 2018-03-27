@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.selfcheck.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- 나의PC점검현황 -->
+ <definition name="admin.my.pc.check.list.tiles" extends="admin.selfcheck.template.tiles">
+  <put-attribute name="title" value="자가진단|나의PC점검현황" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/selfCheck/adMyPcCheckList.jsp" />
+ </definition>
+
+ <!-- 부서PC점검현황 -->
+ <definition name="admin.dept.pc.check.list.tiles" extends="admin.selfcheck.template.tiles">
+  <put-attribute name="title" value="자가진단|부서PC점검현황" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/selfCheck/adDeptPcCheckList.jsp" />
+ </definition>
+
+  <!-- 대상자 Excel 다운로드 -->
+  <definition name="admin.dept.pc.check.regi.popup.excel" template="/WEB-INF/jsp/module/admin/selfCheck/adDeptPcExcelRegiPopup.jsp"/>
+  <!-- 점검자 Excel 다운로드 -->
+  <definition name="admin.dept.pc.check.user.popup.excel" template="/WEB-INF/jsp/module/admin/selfCheck/adDeptPcExcelPcChkUserPopup.jsp"/>
+  <!-- 점검PC Excel 다운로드 -->
+  <definition name="admin.dept.pc.check.popup.excel" template="/WEB-INF/jsp/module/admin/selfCheck/adDeptPcExcelChkPcPopup.jsp"/>
+  <!-- 취약항목 Excel 다운로드 -->
+  <definition name="admin.dept.pc.check.noSafety.popup.excel" template="/WEB-INF/jsp/module/admin/selfCheck/adDeptPcExcelNoSafePopup.jsp"/>
+
+
+</tiles-definitions>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<taglib>
+ <tlib-version>1.0</tlib-version>
+ <jsp-version>1.0</jsp-version>
+ <short-name>tt</short-name>
+ <uri>thinkTreeFunction</uri>
+ <description>ThinkTree태그라이브러리</description>
+
+ <!-- Function Tag start -->
+ <!-- ################################################################################## -->
+ <!-- 코드 -->
+ <!-- ################################################################################## -->
+ <function>
+  <description>코드값, 코드명의Vecotr리스트취득</description>
+  <name>getCodeValues</name>
+  <function-class>tt.com.module.code.SvCoCodeService</function-class>
+  <function-signature>java.util.Vector getValues( java.lang.String )</function-signature>
+ </function>
+ <function>
+  <description>코드명리스트 취득</description>
+  <name>getCodeNames</name>
+  <function-class>tt.com.module.code.SvCoCodeService</function-class>
+  <function-signature>java.util.Vector getCodeNames( java.lang.String )</function-signature>
+ </function>
+ <function>
+  <description>코드리스트취득</description>
+  <name>getCodes</name>
+  <function-class>tt.com.module.code.SvCoCodeService</function-class>
+  <function-signature>java.util.Vector getCodes( java.lang.String )</function-signature>
+ </function>
+ <function>
+  <description>코드상세문자취득</description>
+  <name>getCodeString</name>
+  <function-class>tt.com.module.code.SvCoCodeService</function-class>
+  <function-signature>java.lang.String getCodeString( java.lang.String, java.lang.String )</function-signature>
+ </function>
+ <function>
+  <description>코드설명문자취득</description>
+  <name>getCodeExpString</name>
+  <function-class>tt.com.module.code.SvCoCodeService</function-class>
+  <function-signature>java.lang.String getCodeExpString( java.lang.String, java.lang.String )</function-signature>
+ </function>
+
+ <!-- ################################################################################## -->
+ <!-- 문자열 -->
+ <!-- ################################################################################## -->
+ <function>
+  <description>문자변환</description>
+  <name>replace</name>
+  <function-class>tt.com.utils.UtCoStringUtils</function-class>
+  <function-signature>java.lang.String replaceAll(java.lang.String, java.lang.String,java.lang.String)
+  </function-signature>
+ </function>
+ <function>
+  <description>문자표시</description>
+  <name>abbreviate</name>
+  <function-class>tt.com.utils.UtCoStringUtils</function-class>
+  <function-signature>java.lang.String abbreviate(java.lang.String, int)
+    </function-signature>
+ </function>
+
+ <!-- Function Tag End -->
+</taglib>
+
+
+

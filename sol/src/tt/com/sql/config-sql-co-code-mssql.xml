@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoCode" type="tt.com.bean.VoCoCode" />
+ <typeAlias alias="voCoCodeSp" type="tt.com.bean.VoCoCodeSp" />
+ <typeAlias alias="voCoLoginUserInfo" type="tt.com.bean.VoCoLoginUserInfo" />
+ <typeAlias alias="voCoUserGrpMenu" type="tt.com.bean.VoCoUserGrpMenu" />
+ <typeAlias alias="voCoMenu" type="tt.com.bean.VoCoMenu" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+ <!-- ############################################################################################## -->
+ <!-- 코드 -->
+ <!-- ############################################################################################## -->
+
+ <!-- 모든 코드정의검색 SELECT 절 -->
+ <sql id="select.code.all.mssql">
+  SELECT
+   TC.CD_NO AS CDNO,
+   TC.CD_NM AS CDNM,
+   TC.CD_EXP AS CDEXP,
+   TC.SYS_CD_YN AS SYSCDYN,
+   TCD.CD_DTL_NO AS CDDTLNO,
+   TCD.CD_DTL_NM AS CDDTLNM,
+   TCD.CD_DTL_EXP AS CDDTLEXP,
+   TCD.PRIR_SEQ AS PRIRSEQ,
+   TCD.REG_DM AS REGDM,
+   TCD.UPD_DM AS UPDDM
+  FROM
+    TCODE TC , TCODEDTL TCD
+  </sql>
+ <!-- init code all -->
+ <select id="DaoCoCode.code.list.mssql" resultClass="voCoCodeSp">
+  <include refid="select.code.all.mssql" />
+    <![CDATA[
+    WHERE
+       TC.CD_NO = TCD.CD_NO
+    ORDER BY TC.CD_NO, TCD.PRIR_SEQ
+    ]]>
+ </select>
+
+ <select id="DaoCoCode.code.med.list.mssql" parameterClass="voCoCode" resultClass="voCoCode">
+  SELECT
+   CD_NO AS CDNO,
+   CD_DTL_NO AS CDDTLNO,
+   CD_DTL_NM AS CDDTLNM,
+   CD_DTL_EXP AS CDDTLEXP,
+   PRIR_SEQ AS PRIRSEQ,
+   REG_DM AS REGDM,
+   UPD_DM AS UPDDM
+  FROM TCODEDTL
+  WHERE
+   CD_NO = #cdNo#
+   ORDER BY CD_NO, PRIR_SEQ
+ </select>
+
+</sqlMap>

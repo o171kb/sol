@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voExct" type="tt.bean.VoExct" />
+ <typeAlias alias="voCoUser" type="tt.com.bean.VoCoUser" />
+ <typeAlias alias="voApprInfo" type="tt.bean.VoApprInfo" />
+ <typeAlias alias="voPcBasic" type="tt.bean.VoPcBasic" />
+
+ <!-- 나의결재현황 -->
+ <sql id="DaoMyApproval.appr.list.body.mssql">
+   SELECT
+   	   APPR.APPR_ID AS apprId,
+       APPR.USER_ID AS userId,
+       APPR.STATUS AS status,
+       APPR.PERMIT_GUBUN AS permitGubun,
+       DTL.CD_DTL_NM AS cdDtlNm,
+       SUBSTRING( INFO.APPR_DM,1,16 ) AS apprDm,
+       SUBSTRING(INFO.START_DM,1,4)+'-'+SUBSTRING(INFO.START_DM,5,2)+'-'+SUBSTRING(INFO.START_DM,7,2) AS startDm,
+       SUBSTRING(INFO.END_DM,1,4)+'-'+SUBSTRING(INFO.END_DM,5,2)+'-'+SUBSTRING(INFO.END_DM,7,2) AS endDm,
+       INFO.REASON AS reason,
+       INFO.PURPOSE AS purpose,
+       INFO.EXCT_NMS AS exctNms,
+       INFO.EXCT_APP_ID AS exctAppId,
+       TERMS.EXCT_APP_NM AS exctAppNm,
+       INFO.DRAFTER AS drafter,
+       INFO.USER_ID AS drafterId,
+       INFO.APP_ID AS appId,
+       INFO.APPROBJ_USER AS apprObjUser,
+       INFO.APPROBJ_DEPT AS apprObjDept,
+       INFO.ADD_PROOF_URL AS addProofUrl,
+       INFO.ADD_PROOF_NM AS addProofNm,
+       (SELECT count(*) FROM 
+	   	 TAPPROVER APPR LEFT OUTER JOIN TCODEDTL DTL ON APPR.STATUS = DTL.CD_DTL_NO  
+	    WHERE DTL.CD_NO = '004'
+	    AND APPR.STATUS != '04'
+	    AND DTL.CD_DTL_NO = '01'
+		<isEqual prepend="AND" property="tabDiv2" compareValue="myApp">
+			APPR.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="deptApp">
+			DEPT.DEPT_NO = USR.DEPT_NO
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="allApp">
+			1=1
+		</isEqual>
+	   ) AS apprCount,
+	   (SELECT count(*) FROM 
+	   	 TAPPROVER APPR LEFT OUTER JOIN TCODEDTL DTL ON APPR.STATUS = DTL.CD_DTL_NO  
+	    WHERE DTL.CD_NO = '004'
+	    AND APPR.STATUS != '04'
+	    AND DTL.CD_DTL_NO = '02'
+		<isEqual prepend="AND" property="tabDiv2" compareValue="myApp">
+			APPR.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="deptApp">
+			DEPT.DEPT_NO = USR.DEPT_NO
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="allApp">
+			1=1
+		</isEqual>
+	   ) AS apprDoCount,
+       ROW_NUMBER() OVER( ORDER BY APPR.APPR_ID DESC) AS ROWNUM
+  FROM TAPPROVER APPR 
+	LEFT OUTER JOIN TCODEDTL DTL ON APPR.STATUS = DTL.CD_DTL_NO 
+	LEFT OUTER JOIN TAPPR_INFO INFO ON APPR.APPR_ID = INFO.APPR_ID         
+	LEFT OUTER JOIN TEXCTAPPTERMS TERMS ON TERMS.EXCT_APP_ID = INFO.EXCT_APP_ID  
+	LEFT OUTER JOIN TUSER USR  ON INFO.APP_ID = USR.USER_ID 
+	LEFT OUTER JOIN TDEPT DEPT ON USR.DEPT_NO = DEPT.DEPT_NO 
+ WHERE 
+       DTL.CD_NO = '004'
+       AND APPR.STATUS != '04'
+    <isEqual prepend="AND" property="tabDiv2" compareValue="myApp">
+		APPR.USER_ID = #userId#
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv2" compareValue="deptApp">
+		DEPT.DEPT_NO = USR.DEPT_NO
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv2" compareValue="allApp">
+		1=1
+	</isEqual>
+	
+   <isNotEmpty prepend="AND" property="searchStartDm">
+   <![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) >= #searchStartDm# ]]>
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchEndDm">
+   <![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) <= #searchEndDm# ]]>
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchStatus">
+    APPR.STATUS = #searchStatus#
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchGubun">
+    INFO.EXCT_APP_ID = #searchGubun#
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchUserNm">
+    CHARINDEX(#searchUserNm#, INFO.APPROBJ_USER) > 0
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchDeptNm">
+    CHARINDEX(#searchDeptNm#, INFO.APPROBJ_DEPT) > 0
+   </isNotEmpty>
+
+ </sql>
+ 
+ <!-- 나의결재현황 -->
+ <sql id="DaoMyApproval.appr.list.body2.mssql">
+   SELECT
+   	   APPR.APPR_ID AS apprId,
+       APPR.USER_ID AS userId,
+       APPR.STATUS AS status,
+       APPR.PERMIT_GUBUN AS permitGubun,
+       DTL.CD_DTL_NM AS cdDtlNm,
+       SUBSTRING( INFO.APPR_DM,1,16 ) AS apprDm,
+       SUBSTRING(INFO.START_DM,1,4)+'-'+SUBSTRING(INFO.START_DM,5,2)+'-'+SUBSTRING(INFO.START_DM,7,2) AS startDm,
+       SUBSTRING(INFO.END_DM,1,4)+'-'+SUBSTRING(INFO.END_DM,5,2)+'-'+SUBSTRING(INFO.END_DM,7,2) AS endDm,
+       INFO.REASON AS reason,
+       INFO.PURPOSE AS purpose,
+       INFO.EXCT_NMS AS exctNms,
+       INFO.EXCT_APP_ID AS exctAppId,
+       TERMS.EXCT_APP_NM AS exctAppNm,
+       INFO.DRAFTER AS drafter,
+       INFO.USER_ID AS drafterId,
+       INFO.APP_ID AS appId,
+       INFO.APPROBJ_USER AS apprObjUser,
+       INFO.APPROBJ_DEPT AS apprObjDept,
+       INFO.ADD_PROOF_URL AS addProofUrl,
+       INFO.ADD_PROOF_NM AS addProofNm,
+       (SELECT count(*) FROM 
+	   	 TAPPROVER APPR 
+		LEFT OUTER JOIN TCODEDTL DTL ON APPR.STATUS = DTL.CD_DTL_NO 
+		LEFT OUTER JOIN TAPPR_INFO INFO ON APPR.APPR_ID = INFO.APPR_ID         
+		LEFT OUTER JOIN TEXCTAPPTERMS TERMS ON TERMS.EXCT_APP_ID = INFO.EXCT_APP_ID  
+		LEFT OUTER JOIN TUSER USR  ON INFO.APP_ID = USR.USER_ID 
+		LEFT OUTER JOIN TDEPT DEPT ON USR.DEPT_NO = DEPT.DEPT_NO
+	    WHERE DTL.CD_NO = '004'
+	    AND APPR.STATUS != '04'
+	    AND DTL.CD_DTL_NO = '01'
+		<isEqual prepend="AND" property="tabDiv2" compareValue="myApp">
+			APPR.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="deptApp">
+			<iterate property="deptList" open="(" close=")" conjunction="OR">
+			  DEPT.DEPT_CD = #deptList[].deptCd#
+			</iterate>
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="allApp">
+			1=1
+		</isEqual>
+	   ) AS apprCount,
+	   (SELECT count(*) FROM 
+	   	 TAPPROVER APPR 
+		LEFT OUTER JOIN TCODEDTL DTL ON APPR.STATUS = DTL.CD_DTL_NO 
+		LEFT OUTER JOIN TAPPR_INFO INFO ON APPR.APPR_ID = INFO.APPR_ID         
+		LEFT OUTER JOIN TEXCTAPPTERMS TERMS ON TERMS.EXCT_APP_ID = INFO.EXCT_APP_ID  
+		LEFT OUTER JOIN TUSER USR  ON INFO.APP_ID = USR.USER_ID 
+		LEFT OUTER JOIN TDEPT DEPT ON USR.DEPT_NO = DEPT.DEPT_NO  
+	    WHERE DTL.CD_NO = '004'
+	    AND APPR.STATUS != '04'
+	    AND DTL.CD_DTL_NO = '02'
+		<isEqual prepend="AND" property="tabDiv2" compareValue="myApp">
+			APPR.USER_ID = #userId#
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="deptApp">
+			<iterate property="deptList" open="(" close=")" conjunction="OR">
+			  DEPT.DEPT_CD = #deptList[].deptCd#
+			</iterate>
+		</isEqual>
+		<isEqual prepend="AND" property="tabDiv2" compareValue="allApp">
+			1=1
+		</isEqual>
+	   ) AS apprDoCount,
+       ROW_NUMBER() OVER( ORDER BY APPR.APPR_ID DESC) AS ROWNUM
+  FROM TAPPROVER APPR 
+	LEFT OUTER JOIN TCODEDTL DTL ON APPR.STATUS = DTL.CD_DTL_NO 
+	LEFT OUTER JOIN TAPPR_INFO INFO ON APPR.APPR_ID = INFO.APPR_ID         
+	LEFT OUTER JOIN TEXCTAPPTERMS TERMS ON TERMS.EXCT_APP_ID = INFO.EXCT_APP_ID  
+	LEFT OUTER JOIN TUSER USR  ON INFO.APP_ID = USR.USER_ID 
+	LEFT OUTER JOIN TDEPT DEPT ON USR.DEPT_NO = DEPT.DEPT_NO 
+ WHERE 
+       DTL.CD_NO = '004'
+       AND APPR.STATUS != '04'
+    <isEqual prepend="AND" property="tabDiv2" compareValue="myApp">
+		APPR.USER_ID = #userId#
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv2" compareValue="deptApp">
+		<iterate property="deptList" open="(" close=")" conjunction="OR">
+		  DEPT.DEPT_CD = #deptList[].deptCd#
+		</iterate>
+	</isEqual>
+	<isEqual prepend="AND" property="tabDiv2" compareValue="allApp">
+		1=1
+	</isEqual>
+	
+   <isNotEmpty prepend="AND" property="searchStartDm">
+   <![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) >= #searchStartDm# ]]>
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchEndDm">
+   <![CDATA[   SUBSTRING( INFO.APPR_DM,1,10 ) <= #searchEndDm# ]]>
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchStatus">
+    APPR.STATUS = #searchStatus#
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchGubun">
+    INFO.EXCT_APP_ID = #searchGubun#
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchUserNm">
+    CHARINDEX(#searchUserNm#, INFO.APPROBJ_USER) > 0
+   </isNotEmpty>
+   <isNotEmpty prepend="AND" property="searchDeptNm">
+    CHARINDEX(#searchDeptNm#, INFO.APPROBJ_DEPT) > 0
+   </isNotEmpty>
+
+ </sql>
+
+
+<!-- PAGE SELECT START 절 -->
+ <sql id="appr.page.select.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="appr.page.select.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="appr.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="appr.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+ <!-- 나의결재현황 -->
+ <select id="DaoMyApproval.appr.search.list.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+    <include refid="appr.page.select.start.mssql"/>
+    <include refid="DaoMyApproval.appr.list.body.mssql"/>
+    <include refid="appr.page.select.end.mssql"/>
+ </select>
+ 
+ <select id="DaoMyApproval.appr.search.list2.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+    <include refid="appr.page.select.start.mssql"/>
+    <include refid="DaoMyApproval.appr.list.body2.mssql"/>
+    <include refid="appr.page.select.end.mssql"/>
+ </select>
+
+ <select id="DaoMyApproval.appr.search.page.cnt.mssql" parameterClass="coTtObjParams" resultClass="int">
+   <include refid="appr.page.cnt.start.mssql"/>
+   <include refid="DaoMyApproval.appr.list.body.mssql"/>
+   <include refid="appr.page.cnt.end.mssql"/>
+ </select>
+   <select id="DaoMyApproval.appr.search.page.cnt2.mssql" parameterClass="coTtObjParams" resultClass="int">
+   <include refid="appr.page.cnt.start.mssql"/>
+   <include refid="DaoMyApproval.appr.list.body2.mssql"/>
+   <include refid="appr.page.cnt.end.mssql"/>
+ </select>
+
+ <select id="DaoMyApproval.get.drafter.dtl.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+ SELECT
+      TU.USER_ID AS userId,
+      TU.USER_PWD AS userPwd,
+      TU.USER_NM AS userNm,
+      TU.USER_GRP_NO AS userGrpNo,
+      TU.DEPT_NO AS deptNo,
+      TU.PROXY_APPR_ID AS proxyApprId,
+      TU.PROXY_APPR_YN AS proxyApprYn,
+      TU.USER_POSITION AS userPosition,
+      TU.USER_TEL AS userTel,
+      TU.USER_MOBILE AS userMobile,
+      TU.USER_EMAIL AS userEmail,
+      DEPT.DEPT_NM AS deptNm,
+      ROW_NUMBER() OVER( ORDER BY TU.USER_ID ) AS ROWNUM
+  FROM
+      TUSER TU,
+      TAPPR_INFO INFO,
+      TDEPT DEPT
+  WHERE
+      INFO.APPR_ID = #apprId#
+  AND
+      INFO.USER_ID = TU.USER_ID
+  AND
+      TU.DEPT_NO = DEPT.DEPT_NO
+ </select>
+<!-- 나의신청현황 -->
+ <select id="DaoMyApproval.getApprover.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+ SELECT
+ a.USER_ID        AS     userId,
+ a.USER_PWD       AS     userPwd,
+ a.USER_NM        AS     userNm,
+ a.USER_GRP_NO    AS     userGrpNo,
+ a.DEPT_NO        AS     deptNo,
+ a.USER_POSITION  AS     userPosition,
+ a.USER_TEL       AS     userTel,
+ a.USER_MOBILE    AS     userMobile,
+ a.USER_EMAIL     AS     userEmail,
+ b.DEPT_NM        AS     deptNm,
+ b.MADE_CD        AS     madeCd,
+ c.RESULT_REASON   AS resultReason,
+ c.STATUS AS status,
+ c.TURN_NO AS turnNo,
+ c.PERMIT_GUBUN AS permitGubun,
+ d.CD_DTL_NM AS cdDtlNm
+FROM
+ TUSER a, TDEPT b, TAPPROVER c, TCODEDTL d
+WHERE
+ a.USER_ID = #userId#
+AND
+ a.DEPT_NO = b.DEPT_NO
+AND
+ a.USER_ID = c.USER_ID
+AND
+ c.APPR_ID = #apprId#
+AND
+ d.CD_NO = #cdNo#
+AND
+ c.PERMIT_GUBUN = d.CD_DTL_NO
+ </select>
+<!-- 신청정보 반려 업데이트 -->
+<update id="DaoMyApproval.update.reject.req.apprInfo.mssql" parameterClass="coTtObjParams">
+UPDATE
+     TAPPR_INFO
+   SET
+      STATUS = #status#
+ WHERE
+      APPR_ID = #apprId#
+</update>
+<!-- 결재자 반려 업데이트 -->
+<update id="DaoMyApproval.update.reject.req.approver.mssql" parameterClass="coTtObjParams">
+UPDATE
+     TAPPROVER
+   SET
+      STATUS = #status#,
+      RESULT_REASON = #resultReason#
+ WHERE
+      USER_ID = #userId#
+ AND
+      APPR_ID = #apprId#
+</update>
+
+<!-- 결재자 리스트 -->
+ <select id="DaoMyApproval.approver.list.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+ SELECT
+    USER_ID       AS  userId,
+    UPD_DM       AS  updDm,
+    TURN_NO       AS  turnNo,
+    STATUS       AS  status,
+    RESULT_REASON AS  resultReason,
+    PERMIT_GUBUN  AS  permitGubun,
+    APPR_ID       AS  apprId,
+    ROW_NUMBER() OVER( ORDER BY TURN_NO ) AS ROWNUM
+FROM
+    TAPPROVER
+WHERE
+    APPR_ID = #apprId#
+ </select>
+
+ <!-- 결재정보 리스트 -->
+ <select id="DaoMyApproval.approval.info.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+  SELECT
+    USER_ID    AS   userId,
+    STATUS   AS   status,
+    START_DM  AS   startDm,
+    REASON   AS   reason,
+    PURPOSE   AS   purpose,
+    EXCT_NMS  AS   exctNms,
+    EXCT_APP_ID  AS   exctAppId,
+    END_DM   AS   endDm,
+    DRAFTER   AS   drafter,
+    APP_ID   AS   appId,
+    APPR_ID   AS   apprId,
+    APPR_DM   AS   apprDm,
+    APPROBJ_USER  AS   approbjUser,
+    APPROBJ_ID  AS   approbjId,
+    APPROBJ_DEPT  AS   approbjDept,
+    ADD_PROOF_URL  AS   addProofUrl,
+    ADD_PROOF_NM  AS   addProofNm,
+    ATTACH_GUBUN AS allowGubun
+FROM
+    TAPPR_INFO
+WHERE
+    APPR_ID = #apprId#
+
+ </select>
+
+ <!-- Escort 결재정보 -->
+ <select id="DaoMyApproval.appr.dtl.list.mssql" parameterClass="coTtObjParams" resultClass="voApprDetail">
+SELECT
+    a.REG_DM        AS  regDm,
+    a.PRO_GUBUN     AS  proGubun,
+    a.EXCT_NM	      AS  exctNm,
+    a.EXCT_APP_ID   AS  exctAppId,
+    a.ATTACH_GUBUN   AS  attachGubun,
+    a.APPR_ID	      AS  apprId,
+    b.GUBUN          AS   gubun
+FROM
+    TAPPR_DETAIL a, TEXCT b
+WHERE
+    a.APPR_ID = #apprId#
+AND
+    a.EXCT_APP_ID = b.EXCT_ID
+ </select>
+
+ <!-- 첨부통재 결재정보 -->
+  <select id="DaoMyApproval.attach.appr.dtl.list.mssql" parameterClass="coTtObjParams" resultClass="voApprDetail">
+SELECT
+    a.REG_DM        AS  regDm,
+    a.PRO_GUBUN     AS  proGubun,
+    a.EXCT_NM       AS  exctNm,
+    a.EXCT_APP_ID   AS  exctAppId,
+    a.ATTACH_GUBUN   AS  attachGubun,
+    a.APPR_ID       AS  apprId,
+    a.VALUE1      AS  value1,
+    a.VALUE2       AS  value2
+FROM
+    TAPPR_DETAIL a
+WHERE
+    a.APPR_ID = #apprId#
+ </select>
+
+  <!-- 결재대상 리스트 -->
+ <select id="DaoMyApproval.appr.obj.pc.list.mssql" parameterClass="coTtObjParams" resultClass="voExctObjPc">
+  SELECT
+    USER_NM  AS  userNm,
+    USER_ID  AS  userId,
+    SERIAL  AS  serial,
+    REG_DM  AS  regDm,
+    IP_ADDR  AS  ipAddr,
+    APPR_ID  AS  apprId
+FROM
+    TAPPROBJ_PC
+WHERE
+    APPR_ID = #apprId#
+
+ </select>
+
+ <!-- 결재자 승인 상태 업데이트 -->
+<update id="DaoMyApproval.update.approver.status.mssql" parameterClass="coTtObjParams">
+UPDATE
+     TAPPROVER
+   SET
+     <isNotEmpty property="resultReason">
+      RESULT_REASON = #resultReason#,
+     </isNotEmpty>
+      STATUS = #status#
+ WHERE
+      TURN_NO = #turnNo#
+ AND
+      APPR_ID = #apprId#
+</update>
+
+ <!-- 결재정보 승인 상태 업데이트 -->
+<update id="DaoMyApproval.update.appr.info.status.mssql" parameterClass="coTtObjParams">
+UPDATE
+     TAPPR_INFO
+   SET
+      STATUS = #status#
+ WHERE
+      APPR_ID = #apprId#
+</update>
+
+<!-- Exception Procedure 호출 -->
+<procedure id="DaoMyApproval.call.pro.appr.exception.mssql" parameterClass="coTtObjParams" >
+  <![CDATA[
+{call dbo.maxSP_Escort_SetException_Exception(#serial#,#startDm#,#endDm#,#reason#,#gubun#,#allowType#,#smartPhoneExtend#,#smartPhonePgm#,#grpGubun#,#userId#)}
+  ]]>
+</procedure>
+
+<!-- StoreRule Procedure 호출 -->
+<procedure id="DaoMyApproval.call.pro.appr.storerule.mssql" parameterClass="coTtObjParams" >
+  <![CDATA[
+{call dbo.maxSP_Escort_SetException_StoreRule(#serial#,#startDm#,#endDm#,#reason#,#gubun#,#allowType#,#allowLog#,#smartPhoneExtend#,#grpGubun#,#userId#)}
+  ]]>
+</procedure>
+
+<!-- ExceptionAP Procedure 호출 -->
+<procedure id="DaoMyApproval.call.pro.appr.exceptionAP.mssql" parameterClass="coTtObjParams" >
+  <![CDATA[
+{call dbo.maxSP_Escort_SetException_AP(#serial#,#expDm#,#reason#,#allowType#,#allowLog#,#startDm#,#endDm#,#userId#,#priority#)}
+  ]]>
+</procedure>
+
+<!-- ExceptionICAT Procedure 호출 -->
+<procedure id="DaoMyApproval.call.pro.exceptionICAT.mssql" parameterClass="coTtObjParams" >
+  <![CDATA[
+{call dbo.maxSP_ISExce_SetException_ICat(#serial#,#startDm#,#endDm#,#reason#,#allowType#,#allowLog#,#subGubun#,#subValue1#,#subValue2#,#subStartDm#,#subEndDm#,#grpGubun#,#userId#)}
+  ]]>
+</procedure>
+
+
+<procedure id="DaoMyApproval.insert.appr.exception.site.mssql" parameterClass="coTtObjParams" >
+   <![CDATA[
+     {call dbo.spEmpPol_Add_Delegation(#empGUID#,#appId#,#ruleGUID#,#timeGUID#,'1','1','0',#deptGUID#)}
+   ]]>
+</procedure>
+
+<procedure id="DaoMyApproval.update.appr.exception.site.mssql" parameterClass="coTtObjParams" >
+   <![CDATA[
+     {call dbo.spEmpPol_Update_CatExtend(#empGUID#,#appId#,#ruleGUID#,#timeGUID#,'1','1',#descript#,#endDm#,'-1', '0')}
+   ]]>
+</procedure>
+
+
+ <!-- 하위 부서 조회 -->
+  <select id="DaoMyApproval.draft.lowDept.list.mssql" parameterClass="coTtObjParams" resultClass="voApprInfo">
+  SELECT DEPT_CD as deptCd FROM TDEPT
+  WHERE HIGH_DEPT_CD = #deptCd#
+ </select>
+ 
+  <!-- 하위 부서 조회 -->
+  <select id="DaoMyApproval.draft.lowOrDept.list.mssql" parameterClass="java.util.Map" resultClass="voApprInfo">
+  SELECT DEPT_CD as deptCd FROM TDEPT
+  WHERE 1=1
+  <iterate prepend="AND" property="deptList" open="(" close=")" conjunction="OR">
+  HIGH_DEPT_CD = #deptList[].deptCd#
+  </iterate>
+ </select>
+
+
+
+</sqlMap>

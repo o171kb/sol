@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voExctDraft" type="tt.bean.VoExctDraft" />
+ <typeAlias alias="voAddUser" type="tt.bean.VoAddUser" />
+ <typeAlias alias="voCoUser" type="tt.com.bean.VoCoUser" />
+ <typeAlias alias="voCoCodeDtl" type="tt.com.bean.VoCoCodeDtl" />
+ <typeAlias alias="voPcBasic" type="tt.bean.VoPcBasic" />
+
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+<sql id="exct.draft.all.select.mssql">
+  SELECT
+   EXCT_APP_ID AS EXCTAPPID,
+   EXCT_APP_NM AS EXCTAPPNM,
+   EXCT_BASIC_TERMS AS EXCTBASICTERMS,
+   MAX_APP_TERM AS MAXAPPTERM,
+   APP_TERM_EX AS APPTERMEX,
+   ADD_PROOF_YN AS ADDPROOFYN,
+   ISNULL(nullif(ADD_PROOF_MONTH, ''), '1') AS ADDPROOFMONTH,
+   ISNULL(nullif(ADD_PROOF_Day, ''), '1') AS ADDPROOFDAY,
+   TOP_TERMS AS TOPTERMS,
+   PERMIT_TERMS AS PERMITTERMS,
+   BOTTOM_TERMS AS BOTTOMTERMS,
+   REG_DM AS REGDM,
+   UPD_DM AS UPDDM,
+   UPD_USER AS UPDUSER
+  FROM
+   TEXCTAPPTERMS
+ </sql>
+
+<sql id="approval.user.all.select.mssql">
+SELECT
+ USER_ID   AS userId,
+ USER_PWD  AS userPwd,
+ USER_NM   AS userNm,
+ USER_GRP_NO  AS userGrpNo,
+ REG_DM   AS regDm,
+ UPD_DM   AS updDm,
+ USE_YN   AS useYn,
+ REGR_ID   AS regrId,
+ AUTHORITY  AS authority,
+ USER_POSITION  AS userPosition,
+ DEPT_NO  AS deptNo,
+ USER_TEL  AS userTel,
+ USER_MOBILE  AS userMobile,
+ ROW_NUMBER() OVER( ORDER BY USER_NM ) AS ROWNUM
+FROM
+ TUSER
+ WHERE
+   1 = 1
+ <isNotEmpty prepend="AND" property="searchDeptNm">
+   USER_DEPT LIKE '%' + #searchDeptNm# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchApprUserNm">
+   USER_NM LIKE '%' + #searchApprUserNm# + '%'
+  </isNotEmpty>
+</sql>
+
+<sql id="approval.pc.all.select.mssql">
+SELECT
+ SERIAL     AS     serial,
+ EMPNO     AS   empNo,
+ HNAME     AS   hName,
+ INDEPTNM    AS   indeptNm,
+ SDEPTNM     AS   sdeptNm,
+ LOCATENM    AS   locateNm,
+ BUILDNM     AS   buildNm,
+ AREA     AS   area,
+ START_DATE    AS   startDate,
+ LATEST_DATE    AS   latestDate,
+ ACCESS_CNT    AS   accessCnt,
+ ERROR_CNT    AS   errorCnt,
+ PC_TYPE     AS   pcType,
+ IP_ADDR     AS   ipAddr,
+ VERSION     AS   version,
+ MODEL     AS   model,
+ PC_GUBUN    AS   pcGubun,
+ OS     AS   os,
+ REMARKS     AS   remarks,
+ SEBU_AREA    AS   sebuArea,
+ PROP_NO     AS   propNo,
+ COMPUTER_NAME    AS   computerName,
+ CPUID              AS   cpuId,
+ MAC     AS   mac,
+ OWNERSHIP    AS   ownership,
+ PROP_GUBUN    AS   propGubun,
+ REAL_IPADDR    AS   realIpaddr,
+ PC_USED     AS   pcUsed,
+ TEMP_SAVE    AS   tempSave,
+ RESIDENCE    AS   residence,
+ VUP_TIME    AS   vupTime,
+ DEPTCODE    AS   deptCode,
+ MADECODE    AS   madeCode,
+ BUILDVER    AS   buildVer,
+ ROW_NUMBER() OVER( ORDER BY SERIAL ) AS ROWNUM
+FROM
+ TPCBASIC
+WHERE
+ 1=1
+ <isNotEmpty prepend="AND" property="sdeptNm">
+   SDEPTNM LIKE '%' + #sdeptNm# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="hName">
+   HNAME LIKE '%' + #hName# + '%'
+  </isNotEmpty>
+</sql>
+
+
+<!-- PAGE SELECT START 절 -->
+ <sql id="exct.draft.page.select.start.mssql">
+  SELECT * FROM (
+ </sql>
+
+ <!-- PAGE SELECT END 절 -->
+ <sql id="exct.draft.page.select.end.mssql">
+    <![CDATA[ ) forCnt WHERE forCnt.ROWNUM <= #toIndex#
+                         AND forCnt.ROWNUM > #fromIndex#
+    ]]>
+ </sql>
+
+ <!-- PAGE CNT START 절 -->
+ <sql id="exct.draft.page.cnt.start.mssql">
+  SELECT COUNT (*) AS CNT FROM (
+ </sql>
+
+ <!-- PAGE CNT END 절 -->
+ <sql id="exct.draft.page.cnt.end.mssql">
+    ) TCNT
+ </sql>
+
+
+ <!-- ############################################################################################## -->
+ <!--  -->
+ <!-- ############################################################################################## -->
+
+
+<!--  예외 신청 문구수정  리스트 -->
+<select id="DaoExctDraft.getDraftModifyList.mssql" parameterClass="voExctDraft" resultClass="voExctDraft">
+  <include refid="exct.draft.all.select.mssql"/>
+</select>
+
+<!--  예외 신청 문구수정 -->
+<select id="DaoExctDraft.getExctDraftDtl.mssql" parameterClass="coTtObjParams" resultClass="voExctDraft">
+  <include refid="exct.draft.all.select.mssql"/>
+  WHERE
+   EXCT_APP_ID = #exctAppId#
+</select>
+
+<update id="DaoExctDraft.modifyExctDraft.mssql" parameterClass="coTtObjParams">
+UPDATE
+    TEXCTAPPTERMS
+  SET
+    EXCT_BASIC_TERMS = #exctBasicTerms#,
+    MAX_APP_TERM = #maxAppTerm#,
+    APP_TERM_EX = #appTermEx#,
+    ADD_PROOF_YN = #addProofYn#,
+    ADD_PROOF_MONTH	 = #addProofMonth#,
+    ADD_PROOF_Day  = #addProofDay#,
+    TOP_TERMS = #topTerms#,
+    PERMIT_TERMS = #permitTerms#,
+    BOTTOM_TERMS = #bottomTerms#,
+    UPD_DM = #updDm#,
+    UPD_USER = #updUser#
+  WHERE
+     EXCT_APP_ID = #exctAppId#
+</update>
+
+<select id="DaoExctEscortDraft.getExctEscortDraft.mssql" parameterClass="voExctDraft" resultClass="voExctDraft">
+  <include refid="exct.draft.all.select.mssql"/>
+  WHERE
+   EXCT_APP_ID = #exctAppId#
+</select>
+
+<!-- 결재자 리스트  -->
+<select id="DaoExctDraft.approval.user.list.all.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+<include refid="exct.draft.page.select.start.mssql"/>
+ SELECT
+ a.USER_ID AS userId,
+ a.USER_PWD AS userPwd,
+ a.USER_NM AS userNm,
+ a.USER_GRP_NO AS userGrpNo,
+ a.REG_DM AS regDm,
+ a.UPD_DM AS updDm,
+ a.USE_YN AS useYn,
+ a.REGR_ID AS regrId,
+ a.AUTHORITY AS authority,
+ a.USER_POSITION AS userPosition,
+ a.DEPT_NO AS deptNo,
+ a.USER_TEL AS userTel,
+ a.USER_MOBILE AS userMobile,
+ a.PROXY_APPR_YN AS proxyApprYn,
+ a.PROXY_APPR_ID AS proxyApprId,
+ b.DEPT_NM AS deptNm ,
+ b.DEPT_CD AS deptCd ,
+ b.MADE_CD AS madeCd ,
+ c.APPR_YN AS apprYn,
+ ROW_NUMBER() OVER( ORDER BY a.USER_NM ) AS ROWNUM
+ FROM
+ TUSER a, TDEPT b, TUSERGRP c
+ WHERE
+ a.DEPT_NO = b.DEPT_NO
+ AND
+ a.USER_GRP_NO = c.USER_GRP_NO
+
+ <isEmpty prepend="AND" property="proxyApprId">
+  c.APPR_YN = 1
+ </isEmpty>
+ <isNotEmpty prepend="AND" property="proxyApprId">
+  a.USER_ID = #proxyApprId#
+ </isNotEmpty>
+ <isNotEmpty prepend="AND" property="searchDeptNm">
+  b.DEPT_NM LIKE '%' + #searchDeptNm# + '%'
+ </isNotEmpty>
+ <isNotEmpty prepend="AND" property="searchApprUserNm">
+  a.USER_NM LIKE '%' + #searchApprUserNm# + '%'
+ </isNotEmpty>
+
+ <include refid="exct.draft.page.select.end.mssql"/>
+</select>
+
+<!-- 결재자 리스트 cnt -->
+<select id="DaoExctDraft.approval.user.list.all.cnt.mssql" parameterClass="voCoUser" resultClass="int">
+ <include refid="exct.draft.page.cnt.start.mssql"/>
+ SELECT
+ a.USER_ID   AS userId,
+ a.USER_PWD  AS userPwd,
+ a.USER_NM   AS userNm,
+ a.USER_GRP_NO  AS userGrpNo,
+ a.REG_DM   AS regDm,
+ a.UPD_DM   AS updDm,
+ a.USE_YN   AS useYn,
+ a.REGR_ID   AS regrId,
+ a.AUTHORITY  AS authority,
+ a.USER_POSITION  AS userPosition,
+ a.DEPT_NO  AS deptNo,
+ a.USER_TEL  AS userTel,
+ a.USER_MOBILE  AS userMobile,
+ b.DEPT_NM  AS deptNm ,
+ ROW_NUMBER() OVER( ORDER BY a.USER_NM ) AS ROWNUM
+FROM
+ TUSER a, TDEPT b
+ WHERE
+ a.DEPT_NO = b.DEPT_NO
+ <isNotEmpty prepend="AND" property="searchDeptNm">
+   b.DEPT_NM LIKE '%' + #searchDeptNm# + '%'
+  </isNotEmpty>
+  <isNotEmpty prepend="AND" property="searchApprUserNm">
+   a.USER_NM LIKE '%' + #searchApprUserNm# + '%'
+  </isNotEmpty>
+ <include refid="exct.draft.page.cnt.end.mssql"/>
+</select>
+
+<!-- 예외대상PC 자기 PC  -->
+<select id="DaoExctDraft.approval.pc.list.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic">
+SELECT top 1 
+ SERIAL     AS     serial,
+ EMPNO     AS   empNo,
+ HNAME     AS   hName,
+ INDEPTNM    AS   indeptNm,
+ SDEPTNM     AS   sdeptNm,
+ LOCATENM    AS   locateNm,
+ BUILDNM     AS   buildNm,
+ AREA     AS   area,
+ START_DATE    AS   startDate,
+ LATEST_DATE    AS   latestDate,
+ ACCESS_CNT    AS   accessCnt,
+ ERROR_CNT    AS   errorCnt,
+ PC_TYPE     AS   pcType,
+ IP_ADDR     AS   ipAddr,
+ VERSION     AS   version,
+ MODEL     AS   model,
+ PC_GUBUN    AS   pcGubun,
+ OS     AS   os,
+ REMARKS     AS   remarks,
+ SEBU_AREA    AS   sebuArea,
+ PROP_NO     AS   propNo,
+ COMPUTER_NAME    AS   computerName,
+ CPUID              AS   cpuId,
+ MAC     AS   mac,
+ OWNERSHIP    AS   ownership,
+ PROP_GUBUN    AS   propGubun,
+ REAL_IPADDR    AS   realIpaddr,
+ PC_USED     AS   pcUsed,
+ TEMP_SAVE    AS   tempSave,
+ RESIDENCE    AS   residence,
+ VUP_TIME    AS   vupTime,
+ DEPTCODE    AS   deptCode,
+ MADECODE    AS   madeCode,
+ BUILDVER    AS   buildVer
+FROM
+ TPCBASIC
+WHERE
+      EMPNO = #userId#
+  AND IP_ADDR = #ipAddr#
+ 
+</select>
+
+<!-- 예외대상PC 리스트  -->
+<select id="DaoExctDraft.approval.pc.list.all.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic">
+<include refid="exct.draft.page.select.start.mssql"/>
+ <include refid="approval.pc.all.select.mssql"/>
+ <include refid="exct.draft.page.select.end.mssql"/>
+</select>
+
+<!-- 예외대상PC 리스트 cnt -->
+<select id="DaoExctDraft.approval.pc.list.all.cnt.mssql" parameterClass="voPcBasic" resultClass="int">
+ <include refid="exct.draft.page.cnt.start.mssql"/>
+ <include refid="approval.pc.all.select.mssql"/>
+ <include refid="exct.draft.page.cnt.end.mssql"/>
+</select>
+
+<select id="DaoExctDraft.getUserDtl.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+SELECT
+ a.USER_ID        AS     userId,
+ a.USER_PWD       AS     userPwd,
+ a.USER_NM	       AS     userNm,
+ a.USER_GRP_NO    AS     userGrpNo,
+ a.DEPT_NO	       AS     deptNo,
+ a.USER_POSITION  AS     userPosition,
+ a.USER_TEL       AS     userTel,
+ a.USER_MOBILE    AS     userMobile,
+ a.USER_EMAIL     AS     userEmail,
+ b.DEPT_NM        AS     deptNm,
+ b.DEPT_CD        AS     deptCd,
+ b.MADE_CD        AS     madeCd
+FROM
+ TUSER a, TDEPT b
+WHERE
+ a.USER_ID = #userId#
+AND
+ a.DEPT_NO = b.DEPT_NO
+</select>
+
+<select id="DaoExctDraft.approver.list.mssql" parameterClass="voAddUser" resultClass="voAddUser">
+select
+  a.USER_Id as userId,
+  a.USER_NM as userNm,
+  a.USER_POSITION as userPosition,
+  a.USER_GRP_NO as userGrpNo,
+  b.GRP_NM as grpNm,
+  c.DEPT_NO as deptNo,
+  c.DEPT_NM as deptNm,
+  c.DEPT_CD as deptCd,
+  c.MADE_CD as madeCd
+from
+ TUSER a, TUSERGRP b, TDEPT c
+where
+ a.USER_GRP_NO = b.USER_GRP_NO
+and
+ b.APPR_YN = 1
+and
+ a.DEPT_NO = c.DEPT_NO
+and
+ c.MADE_CD = #madeCd#
+and
+ a.USE_YN = 1
+</select>
+<select id="DaoExctDraft.comp.admin.list.mssql" parameterClass="voAddUser" resultClass="voAddUser">
+select
+  a.USER_Id as userId,
+  a.USER_NM as userNm,
+  a.USER_POSITION as userPosition,
+  a.USER_GRP_NO as userGrpNo,
+  b.GRP_NM as grpNm,
+<!--   b.COMPADMIN as compAdmin,
+  b.COMPADCODE as compAdCode, -->
+  c.DEPT_NO as deptNo,
+  c.DEPT_NM as deptNm,
+  c.DEPT_CD as deptCd,
+  c.MADE_CD as madeCd
+from
+ TUSER a, TUSERGRP b, TDEPT c
+where
+ a.USER_GRP_NO = b.USER_GRP_NO
+<!-- and
+ b.COMPADMIN = '1' -->
+and
+ a.DEPT_NO = c.DEPT_NO
+and
+ c.MADE_CD = #madeCd#
+and
+ a.USE_YN = 1
+</select>
+
+
+<select id="DaoExctDraft.approver.user.list.mssql" parameterClass="voAddUser" resultClass="voAddUser">
+select
+  a.USER_Id as userId,
+  a.USER_NM as userNm,
+  a.USER_POSITION as userPosition,
+  a.USER_GRP_NO as userGrpNo,
+  b.GRP_NM as grpNm,
+  c.DEPT_NO as deptNo,
+  c.DEPT_NM as deptNm,
+  c.DEPT_CD as deptCd,
+  c.MADE_CD as madeCd,
+  d.CD_DTL_NM as userPositionNm
+from
+ TUSER a, TUSERGRP b, TDEPT c, TCODEDTL d
+where
+ a.USER_GRP_NO = b.USER_GRP_NO
+and
+ b.APPR_YN = 1
+and
+ a.DEPT_NO = c.DEPT_NO
+and
+ c.DEPT_CD = #deptCd#
+<isEqual property="selfYn" compareValue="0">
+and
+ a.USER_POSITION > #userPosition#
+</isEqual>
+<isEqual property="selfYn" compareValue="1">
+and
+ a.USER_POSITION = #userPosition#
+and 
+ a.USER_ID = #userId#
+</isEqual>
+and
+ a.USE_YN = 1
+<!-- and 
+ b.COMPADMIN != 1 -->
+and 
+ a.USER_POSITION = d.CD_DTL_NO
+and 
+ d.CD_NO = '010'
+<isNotEmpty prepend="AND" property="deptNm">
+ c.DEPT_NM LIKE '%' + #deptNm# + '%'
+</isNotEmpty>
+<isNotEmpty prepend="AND" property="userNm">
+ a.USER_NM LIKE '%' + #userNm# + '%'
+</isNotEmpty>
+order by a.USER_POSITION 
+</select>
+<select id="DaoExctDraft.comp.admin.user.list.mssql" parameterClass="voAddUser" resultClass="voAddUser">
+select 
+  a.USER_Id as userId,
+  <!-- a.USER_NM as userNm, -->
+  a.USER_NM + '[전산관리자]' as userNm,
+  a.USER_POSITION as userPosition,
+  a.USER_GRP_NO as userGrpNo,
+  b.GRP_NM as grpNm,
+<!--   b.COMPADMIN as compAdmin,
+  b.COMPADCODE as compAdCode, -->
+  c.DEPT_NO as deptNo,
+  c.DEPT_NM as deptNm,
+  c.DEPT_CD as deptCd,
+  c.MADE_CD as madeCd,
+  d.CD_DTL_NM as userPositionNm
+from 
+ TUSER a, TUSERGRP b, TDEPT c, TCODEDTL d
+ where
+ a.USER_GRP_NO = b.USER_GRP_NO
+<!-- and
+ b.COMPADMIN = '1' -->
+ and
+ a.DEPT_NO = c.DEPT_NO
+ and
+ a.USE_YN = 1
+ and 
+ a.USER_POSITION = d.CD_DTL_NO
+and 
+ d.CD_NO = '010'
+order by a.USER_POSITION 
+</select>
+
+<select id="DaoExctDraft.approver.high.dept.list.mssql" parameterClass="voAddUser" resultClass="String">
+select
+  HIGH_DEPT_CD
+from
+	TDEPT 
+where
+ DEPT_CD = #deptCd#
+</select>
+
+<select id="DaoExctDraft.approval.user.list.all.pop.mssql" parameterClass="coTtObjParams" resultClass="voCoUser">
+select
+  a.USER_Id as userId,
+  a.USER_NM as userNm,
+  a.USER_POSITION as userPosition,
+  a.USER_GRP_NO as userGrpNo,
+  b.GRP_NM as grpNm,
+  c.DEPT_NO as deptNo,
+  c.DEPT_NM as deptNm,
+  c.DEPT_CD as deptCd,
+  c.MADE_CD as madeCd,
+  d.CD_DTL_NM as userPositionNm
+from
+ TUSER a, TUSERGRP b, TDEPT c, TCODEDTL d
+where
+ a.USER_GRP_NO = b.USER_GRP_NO
+and
+ b.APPR_YN = 1
+and
+ a.DEPT_NO = c.DEPT_NO
+and
+ c.DEPT_CD = #deptCd#
+<isEqual property="selfYn" compareValue="0">
+and
+ a.USER_POSITION > #userPosition#
+</isEqual>
+<isEqual property="selfYn" compareValue="1">
+and
+ a.USER_POSITION = #userPosition#
+and 
+ a.USER_ID = #userId#
+</isEqual>
+and
+ a.USE_YN = 1
+<!-- and 
+ b.COMPADMIN != 1 -->
+and 
+ a.USER_POSITION = d.CD_DTL_NO
+and 
+ d.CD_NO = '010'
+<isNotEmpty prepend="AND" property="searchDeptNm">
+ c.DEPT_NM LIKE '%' + #searchDeptNm# + '%'
+</isNotEmpty>
+<isNotEmpty prepend="AND" property="searchApprUserNm">
+ a.USER_NM LIKE '%' + #searchApprUserNm# + '%'
+</isNotEmpty>
+order by a.USER_POSITION 
+</select>
+
+<select id="DaoExctEscortDraft.getEmail.mssql" parameterClass="String" resultClass="String">
+ select USER_EMAIL from TUSER where USER_ID = #id# 
+</select>
+
+<select id="DaoExctDraft.sitePc.basic.list.info.mssql" parameterClass="coTtObjParams" resultClass="voPcBasic" >
+SELECT tu.USER_ID as userId, 
+	tu.USER_NM as hName, 
+	tu.USER_EMAIL as eMail,
+	td.DEPT_NM as sdeptNm
+FROM leedb.dbo.TUSER tu, leedb.dbo.TDEPT td 
+WHERE tu.USER_ID = #userId#
+AND tu.DEPT_NO = td.DEPT_NO
+ </select>
+</sqlMap>

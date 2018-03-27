@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="com-secuPrint">
+
+ <typeAlias alias="egovMap" type="egovframework.rte.psl.dataaccess.util.EgovMap" />
+ <typeAlias alias="voCoDept" type="tt.com.bean.VoCoDept" />
+ <typeAlias alias="voBoard" type="tt.bean.VoBoard" />
+ <typeAlias alias="coTtStrParams" type="tt.com.CoTtStrParams" />
+ <typeAlias alias="coTtObjParams" type="tt.com.CoTtObjParams" />
+ <typeAlias alias="voPcBasic" type="tt.bean.VoPcBasic" />
+
+ <!-- ############################################################################################## -->
+ <!-- 공통으로 사용할 SELECT 절 정의 -->
+ <!-- ############################################################################################## -->
+
+
+
+<!-- ############################################################################################## -->
+ <!--  -->
+ <!-- ############################################################################################## -->
+
+
+
+<!-- <insert id="DaoSecuPrint.insert.appr.user.output" parameterClass="coTtObjParams">
+ INSERT
+  INTO secuprintadmin.UserInfo
+       (
+			Sabeon
+       )
+       VALUES
+       (
+          #userId#
+       )
+ </insert> -->
+<!--  추가 HDD 적용 -->
+ <insert id="DaoSecuPrint.insert.appr.exception.output.mssql" parameterClass="coTtObjParams">
+ INSERT
+  INTO secuprintadmin.ExceptionHistory
+       (
+           Sabeon,
+           SingleID,
+           ESPKey,
+           DateFROM,
+           DateTo,
+           Division,
+           Content,
+           Process
+
+       )
+       VALUES
+       (
+          #userId#,
+          #userId#,
+          'ESR',
+          datediff(s, '1970-01-01 09:00:00', #startDm#),
+          datediff(s, '1970-01-01 09:00:00', #endDm#),
+          #value1#,
+          #reason#,
+          0
+       )
+ </insert>
+
+</sqlMap>

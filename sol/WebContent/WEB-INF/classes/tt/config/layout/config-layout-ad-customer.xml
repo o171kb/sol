@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.customer.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- 고객센터|공지사항|리스트 -->
+ <definition name="admin.customer.notice.list.tiles" extends="admin.customer.template.tiles">
+  <put-attribute name="title" value="고객센터|공지사항" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/customer/adNoticeList.jsp" />
+ </definition>
+
+ <!-- 고객센터|공지사항|상세화면 -->
+ <definition name="admin.customer.notice.view.tiles" extends="admin.customer.template.tiles">
+  <put-attribute name="title" value="고객센터|공지사항|상세화면" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/customer/adNoticeView.jsp" />
+ </definition>
+
+ <!-- 고객센터|FAQ|리스트 -->
+ <definition name="admin.customer.faq.list.tiles" extends="admin.customer.template.tiles">
+  <put-attribute name="title" value="고객센터|FAQ|리스트" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/customer/adFaqList.jsp" />
+ </definition>
+
+ <!-- 고객센터|FAQ|상세화면 -->
+ <definition name="admin.customer.faq.view.tiles" extends="admin.customer.template.tiles">
+  <put-attribute name="title" value="고객센터|FAQ|상세화면" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/customer/adFaqView.jsp" />
+ </definition>
+
+ <!-- 고객센터|자료실|리스트 -->
+ <definition name="admin.customer.data.list.tiles" extends="admin.customer.template.tiles">
+  <put-attribute name="title" value="고객센터|자료실|리스트" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/customer/adDataList.jsp" />
+ </definition>
+
+ <!-- 고객센터|자료실|상세화면 -->
+ <definition name="admin.customer.data.view.tiles" extends="admin.customer.template.tiles">
+  <put-attribute name="title" value="고객센터|자료실|상세화면" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/customer/adDataView.jsp" />
+ </definition>
+
+</tiles-definitions>

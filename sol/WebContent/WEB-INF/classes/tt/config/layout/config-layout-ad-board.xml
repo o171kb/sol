@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+ <definition name="admin.board.template.tiles" template="/WEB-INF/jsp/com/layout/admin/adLayout.jsp">
+  <put-attribute name="css" value="/css/admin/layout.css" type="string" />
+  <put-attribute name="header" value="/WEB-INF/jsp/com/layout/admin/adHeader.jsp" />
+  <put-attribute name="menu" value="/WEB-INF/jsp/com/layout/admin/adMenu.jsp" />
+  <put-attribute name="footer" value="/WEB-INF/jsp/com/layout/admin/adFooter.jsp" />
+ </definition>
+
+ <!-- 게시관리|검색 -->
+ <definition name="admin.board.search.list.tiles" extends="admin.board.template.tiles">
+  <put-attribute name="title" value="게시관리|검색" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/board/adBoardSearchList.jsp" />
+ </definition>
+
+ <!-- 게시관리|상세 -->
+ <definition name="admin.board.search.modify.tiles" extends="admin.board.template.tiles">
+  <put-attribute name="title" value="게시관리|상세" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/board/adBoardSearchModify.jsp" />
+ </definition>
+
+ <!-- 게시관리|등록 -->
+ <definition name="admin.board.search.write.tiles" extends="admin.board.template.tiles">
+  <put-attribute name="title" value="게시관리|등록" />
+  <put-attribute name="body" value="/WEB-INF/jsp/module/admin/board/adBoardSearchWrite.jsp" />
+ </definition>
+
+
+</tiles-definitions>
